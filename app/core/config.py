@@ -23,10 +23,16 @@ class Setting(BaseSettings):
         env_file = ".env_config"
 
 
-
+    #url de coneccion
     @property
     def DATABASE_URL(self) -> str :
         #postgresql://postgres:password@localhost:5432/mvp_db
-        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}
-        @{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}{self.POSTGRES_DB}"
+        return (f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+        f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
     
+    #url sincrona para alembic 
+    @property
+    def DATABASE_URL_SYNC(self) -> str:
+        return (f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
+        f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
+
