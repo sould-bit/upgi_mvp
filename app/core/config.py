@@ -19,9 +19,6 @@ class Setting(BaseSettings):
     POSTGRES_DB: str = "db"
     POSTGRES_PORT: int = 5432
 
-    class Config:
-        env_file = ".env_config"
-
 
     #url de coneccion
     @property
@@ -36,3 +33,31 @@ class Setting(BaseSettings):
         return (f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}"
         f"@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}")
 
+     # Configuración de autenticación JWT
+    SECRET_KEY: str = "your-super-secret-key-change-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    
+    # Configuración de CORS
+    BACKEND_CORS_ORIGINS: list[str] = [
+        "http://localhost:3000",  # React frontend
+        "http://localhost:8080",  # Vue frontend
+        "http://localhost:4200",  # Angular frontend
+    ]
+    
+    # Configuración de archivos y reportes
+    UPLOAD_FOLDER: str = "uploads"
+    REPORTS_FOLDER: str = "reports"
+    MAX_FILE_SIZE: int = 10 * 1024 * 1024  # 10MB
+    
+    # Configuración de logs
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "json"  # json o simple
+    
+    # Configuración de pruebas
+    TESTING: bool = False
+    TEST_DATABASE_URL: str | None 
+
+
+    class Config:
+        env_file = ".env_config"
