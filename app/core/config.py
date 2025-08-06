@@ -56,29 +56,27 @@ class Setting(BaseSettings):
     
     # Configuración de pruebas
     TESTING: bool = False
-    TEST_DATABASE_URL: str | None 
+    TEST_DATABASE_URL: str | None = None 
 
 
-    class Config:
-        env_file = ".env_config"
-        case_sencitive =True
+    model_config = {"env_file": ".env_config", "case_sensitive": True}
 
 
 #instancia global de configuraion 
 settings = Setting()
 
 
-class Dev_settings(settings):
+class Dev_settings(Setting):
     LOG_LEVEL: str = "DEBUG"
     POSTGRES_DB: str = "TEST_DB"
 
 
-class Produccion_Settings(settings):
+class Produccion_Settings(Setting):
     LOG_LEVEL: str = "WARNING"
     DEBUG: bool = False
 
 
-class Test_settings(settings):
+class SettingsForTest(Setting):
     DEBUG : bool = True
     POSTGRES_DB: str = "TEST_DB"
 
@@ -100,6 +98,6 @@ def get_settings() -> Setting:
             return Dev_settings()
         case "Produccion" :
             return Produccion_Settings()
-        case "test_Settings" :
-            return Test_settings()
+        case "test_settings" :
+            return SettingsForTest()
         
