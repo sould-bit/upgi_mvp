@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings 
+from pydantic_settings import BaseSettings , SettingsConfigDict
 import os 
 
 class Setting(BaseSettings):
@@ -59,7 +59,7 @@ class Setting(BaseSettings):
     TEST_DATABASE_URL: str | None = None 
 
 
-    model_config = {"env_file": ".env_config", "case_sensitive": True}
+    model_config = SettingsConfigDict(env_file=".env_config", case_sensitive=True)
 
 
 #instancia global de configuraion 
