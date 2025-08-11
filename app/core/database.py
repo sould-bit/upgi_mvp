@@ -99,3 +99,163 @@ async def init_db():
 # conn.run_sync() permite ejecutar código síncrono en contexto async
         await conn.run_sync(SQLModel.metadata.create_all)
         logger.info("✅ Database tables created successfully")
+
+
+async def drop_db():
+     """
+    Eliminar todas las tablas de la base de datos
+    
+    PELIGRO: Solo usar en testing o reset completo de desarrollo
+    """
+     async with async_engine.begin() as conn:
+         await conn.run_sync(SQLModel.metadata.drop_all)
+         logger.warning("🗑️ All database tables dropped")
+
+# ============================================================================
+# GESTIÓN DE CONEXIONES
+# ============================================================================
+
+async def close_db():
+    """
+    Cerrar todas las conexiones de la base de datos
+    Llamar al hacer shutdown de la aplicación
+    """
+    await async_engine.dispose()
+    sync_engine.dispose()
+    logger.info("🔌 Database connections closed")
+
+
+
+class DatabaseTransaccion:
+    """
+    Context manager para manejar transacciones manuales complejas
+    
+    Ejemplo del PDF: "Envolver creación de pedido y descuento de stock en transacción"
+    
+    Uso:
+    async with DatabaseTransaction() as db:
+        # Crear reserva
+        reserva = await reserva_repo.create(db, reserva_data)
+        # Descontar inventario
+        await inventario_service.descontar_stock(db, producto_id, cantidad)
+        # Si todo sale bien → commit automático
+        # Si hay error → rollback automático
+    """
+    def __init__(self):
+        self.session : AsyncSession = None
+
+    async def __aenter__(self) -> AsyncSession:
+        """Iniciar transaccion"""
+        self.session = AsyncSession(async_engine)
+        return self.session
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        try:
+            if exc_type is not None:
+                await self.session.rollback()
+                logger.error(f"🔄 Transaction rolled back: {exc_val}")
+            else:
+                await self.session.commit()
+                logger.debug("✅ Transaction committed")
+        except Exception as e :
+            #error al hacer commit /rollback
+            logger.error(f"❌ Transaction error: {e}")
+            await self.session.rollback()
+        finally:
+            # Siempre cerrar la sesión
+            await self.session.close()
+        
+        # Retornar False para re-lanzar excepciones si las hay
+        return False
+    
+# ============================================================================
+# HEALTH CHECK - Monitoreo de base de datos
+# ============================================================================
+
+async def check_db_health() -> bool:
+    """
+    Verificar si PostgreSQL está disponible y respondiendo
+    
+    Útil para:
+    - Health checks de Kubernetes/Docker
+    - Monitoreo con Prometheus (del PDF)
+    - Diagnóstico de problemas de conexión
+    """
+    try:
+        async with AsyncSession(async_engine) as session:
+            # Query simple para verificar conectividad
+            from sqlmodel import text
+            result = await session.exec(text("SELECT 1"))
+            return result.first() == 1
+    except Exception as e:
+        logger.error(f"💔 Database health check failed: {e}")
+        return False
+    
+
+# ============================================================================
+# CONFIGURACIÓN PARA TESTING
+# ============================================================================
+
+class TestDatabase:
+    """
+    Configuración especial para testing con SQLite en memoria
+    
+    Siguiendo el patrón del PDF: "pytest con fixtures de base de datos en memoria"
+    """
+    
+    def __init__(self):
+        # SQLite en memoria para tests rápidos
+        # No necesita PostgreSQL instalado para correr tests
+        self.test_engine = create_async_engine(
+            "sqlite+aiosqlite:///:memory:",
+            echo=False,  # Sin logs en testing
+            future=True
+        )
+    
+    async def setup(self):
+        """Preparar base de datos de prueba"""
+        async with self.test_engine.begin() as conn:
+            # Crear todas las tablas en memoria
+            await conn.run_sync(SQLModel.metadata.create_all)
+        logger.info("🧪 Test database setup completed")
+    
+    async def teardown(self):
+        """Limpiar después de las pruebas"""
+        await self.test_engine.dispose()
+        logger.info("🧹 Test database cleaned up")
+    
+    async def get_session(self) -> AsyncGenerator[AsyncSession, None]:
+        """
+        Dependency override para testing
+        
+        En tests:
+        app.dependency_overrides[get_db] = test_db.get_session
+        """
+        async with AsyncSession(self.test_engine) as session:
+            try:
+                yield session
+            except Exception:
+                await session.rollback()
+                raise
+
+# ============================================================================
+# UTILIDADES ADICIONALES
+# ============================================================================
+
+def get_sync_session() -> Session:
+    """
+    Sesión síncrona para casos especiales
+    (Principalmente para Alembic y scripts de migración)
+    """
+    return Session(sync_engine)
+
+async def execute_raw_query(query: str, params: dict = None):
+    """
+    Ejecutar query SQL crudo cuando SQLModel no es suficiente
+    
+    Ejemplo: reportes complejos, funciones de PostgreSQL específicas
+    """
+    async with AsyncSession(async_engine) as session:
+        from sqlmodel import text
+        result = await session.exec(text(query), params or {})
+        return result.all()
