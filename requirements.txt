@@ -41,3 +41,5 @@ uvicorn==0.33.0
 uvloop==0.21.0
 watchfiles==0.24.0
 websockets==13.1
+asyncpg
+psycopg2-binary

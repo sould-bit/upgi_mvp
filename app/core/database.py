@@ -47,4 +47,55 @@ sync_engine = create_engine(
 # ============================================================================
 
 async def get_db()->AsyncGenerator[AsyncSession,None]:
-    pass
+    """
+    Dependency para inyectar sesión de base de datos en endpoints FastAPI
+    
+    Uso en endpoints:
+    @app.get("/usuarios/")
+    async def get_usuarios(db: AsyncSession = Depends(get_db)):
+        # usar db aquí
+    
+    Patrón ARQ: "Sesión única por petición con Depends(get_db)"
+    """
+# crea una nueva peticion asincrona para esta peticion http 
+    async with AsyncSession(async_engine) as session:
+        try:
+            #entrega la sesion al endpoint
+            yield session
+        except Exception as e:
+        # si ahi error hacemos un rollback automatico
+            logger.error(f"Database Session Error: {e}")
+            await session.rollback()
+            """
+            considerar lanzar una excepcion raise personalidada especifica para el cliente 
+            """
+            raise # <- relanza la misma ecxepcion que captura  except  " por defecto fastapi captura la excepcion "
+        finally :
+            pass
+
+
+#======
+# INICIALIZACION Y GESTION DE TABLAS 
+#======
+
+async def init_db():
+    """
+    Crear todas las tablas en la base de datos
+    
+    IMPORTANTE: Solo usar en desarrollo o testing
+    En producción usar migraciones de Alembic
+    """
+    async with async_engine.begin() as conn:
+#immportar todos los modelos sql para reistrarlos
+#esto asegura que sqlmodel tenga todas laas tablas registradas
+        from app.models import (
+            Cliente, Usuario, Reserva, Servicio, Pago,
+            Factura, Producto, Inventario, MovimientoInventario,
+            Comentario, Reporte
+        )
+
+
+#creammos todas las tabals registradas 
+# conn.run_sync() permite ejecutar código síncrono en contexto async
+        await conn.run_sync(SQLModel.metadata.create_all)
+        logger.info("✅ Database tables created successfully")
