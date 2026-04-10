@@ -1,48 +1,100 @@
-# API - UPGI MVP
+# UPGI API - Documentación Técnica
 
-## Descripción General
+## Descripción
 
-API REST desarrollada con FastAPI para el proyecto UPGI MVP. Proporciona servicios de autenticación y gestión de sesiones para los usuarios de la aplicación.
+API REST para el sistema de gestión de reservas de canchas deportivas UPGI. Proporciona servicios de autenticación, gestión de usuarios, reservas, canchas y reportes.
 
 ## Stack Tecnológico
 
 - **Framework**: FastAPI (Python 3.11+)
-- **Base de datos**: SQLite (desarrollo) / PostgreSQL (producción)
-- **ORM**: SQLAlchemy
-- **Autenticación**: JWT con bcrypt para hashing de contraseñas
-- **Validación**: Pydantic
+- **Base de datos**: PostgreSQL
+- **ORM**: SQLAlchemy 2.0
+- **Autenticación**: JWT (python-jose) + bcrypt
+- **Validación**: Pydantic v2
+- **Migraciones**: Alembic
 
-## Estructura del Proyecto
+## Arquitectura por Dominios
 
 ```
 API/
 ├── app/
-│   ├── main.py           # Punto de entrada de la aplicación
-│   ├── config.py         # Configuración del entorno
-│   ├── database.py       # Conexión a base de datos
-│   ├── models/           # Modelos SQLAlchemy
-│   ├── schemas/          # Schemas Pydantic
-│   ├── routers/          # Endpoints de la API
-│   ├── services/         # Lógica de negocio
-│   └── utils/            # Utilidades (auth, helpers)
-├── tests/                # Pruebas unitarias
-├── doc_api/              # Documentación de la API
-└── requirements.txt      # Dependencias Python
+│   ├── main.py                    # Punto de entrada
+│   ├── config.py                 # Configuración
+│   ├── database.py               # Conexión BD
+│   ├── dependencies.py           # Inyección de dependencias
+│   │
+│   ├── domains/                   # DOMINIOS
+│   │   ├── auth/                 # Autenticación
+│   │   │   ├── router.py
+│   │   │   ├── schemas.py
+│   │   │   ├── service.py
+│   │   │   └── utils.py
+│   │   │
+│   │   ├── users/                # Gestión de usuarios
+│   │   │   ├── router.py
+│   │   │   ├── schemas.py
+│   │   │   └── service.py
+│   │   │
+│   │   ├── reservas/              # Gestión de reservas
+│   │   │   ├── router.py
+│   │   │   ├── schemas.py
+│   │   │   ├── service.py
+│   │   │   └── models.py
+│   │   │
+│   │   ├── canchas/               # Gestión de canchas
+│   │   │   ├── router.py
+│   │   │   ├── schemas.py
+│   │   │   └── service.py
+│   │   │
+│   │   └── reportes/              # Reportes y estadísticas
+│   │       ├── router.py
+│   │       ├── schemas.py
+│   │       └── service.py
+│   │
+│   ├── core/                      # Núcleo compartido
+│   │   ├── models.py             # Modelos base
+│   │   ├── exceptions.py          # Excepciones custom
+│   │   └── security.py            # Utilidades de seguridad
+│   │
+│   └── db/                        # Base de datos
+│       ├── base.py
+│       └── session.py
+│
+├── tests/
+├── doc_api/                       # Esta documentación
+└── requirements.txt
 ```
 
-## Módulos
+## Dominios
 
-### Módulo Session
-Gestión de autenticación y sesiones de usuarios.
-
+### 1. Auth (Autenticación)
 - Registro de usuarios
-- Inicio de sesión
-- Gestión de tokens JWT
+- Inicio/cierre de sesión
+- Verificación de tokens
+
+### 2. Users (Usuarios)
+- Perfil de usuario
+- Actualización de datos
+
+### 3. Reservas
+- Crear reserva
+- Consultar reservas
+- Cancelar reserva
+- Estados de pago (Libre, Abonado, Sin pagar, Pagado)
+
+### 4. Canchas
+- Listado de canchas
+- Horarios disponibles
+- Gestión de espacios
+
+### 5. Reportes
+- Reservas por semana
+- Estadísticas generales
 
 ## Navegación
 
-- [Parafraseo](parafraseo.md) - Definición del objetivo del sistema
+- [Parafraseo](parafraseo.md) - Definición del objetivo
 - [Casos de Uso](usecase.md) - Especificación de funcionalidades
-- [Entidades y Reglas](entidades_reglas.md) - Modelo de datos y validaciones
-- [Contratos API](Contratos_API.md) - Especificación de endpoints
-- [Requisitos No Funcionales](requisitos_no_funcionales.md) - Atributos de calidad
+- [Entidades y Reglas](entidades_reglas.md) - Modelo de datos
+- [Contratos API](Contratos_API.md) - Endpoints y contratos
+- [Requisitos No Funcionales](requisitos_no_funcionales.md) - Calidad
