@@ -2,15 +2,17 @@
 
 - **Sistema**
   - API (FastAPI)
-  - Backend (SQLAlchemy)
-  - Base de Datos (PostgreSQL/SQLite)
+  - Frontend (React + TypeScript)
+  - Base de Datos (PostgreSQL)
 - **Cliente**
-  - Aplicación Frontend
-  - Consumidores de la API (apps móviles, servicios)
+  - Usuario regular (cliente que reserva canchas)
+  - Administrador (gestión completa del sistema)
 
 ---
 
-## UC-01: Registrar Usuario
+# CASOS DE USO: AUTH
+
+## UC-A01: Registrar Usuario
 
 **Descripción**: El usuario debe poder registrarse en la plataforma.
 
@@ -21,25 +23,29 @@
 
 | Paso | Actor | Acción |
 |------|-------|--------|
-| A | Usuario | Ingresa datos (username, password) |
-| B | Sistema | Valida datos y códigos [200 OK] |
-| C | Sistema | Genera salt y hash de la contraseña |
-| D | Sistema | Crea usuario en la base de datos |
-| E | Sistema | Retorna mensaje **Registro exitoso** |
+| A | Usuario | Ingresa email y contraseña |
+| B | Sistema | Valida formato de email |
+| C | Sistema | Valida requisitos de contraseña |
+| D | Sistema | Verifica que el email no exista |
+| E | Sistema | Genera salt y hash de contraseña |
+| F | Sistema | Crea registro en auth y users |
+| G | Sistema | Retorna mensaje **Registro exitoso** |
 
 ### Flujos Alternativos
 
 | Paso | Condición | Resultado |
 |------|-----------|-----------|
-| B | El usuario ya existe | Sistema muestra error [409 Conflict] |
-| B | Contraseña no cumple requisitos | Sistema muestra error [400 Bad Request] |
-| B | Datos vacíos o inválidos | Sistema muestra error [422 Unprocessable Entity] |
+| B | Email inválido | Error [400 Bad Request] |
+| C | Contraseña no cumple | Error [400 Bad Request] |
+| D | Email ya existe | Error [409 Conflict] |
 
 ### INPUTS
 
 ```
-username: str (max 50 caracteres, alfanumérico con underscore)
-password: str (min 8 caracteres, debe incluir: mayúscula, minúscula, número, caracter especial)
+email: string (formato válido, max 255 caracteres)
+password: string (min 8 chars, mayúscula, minúscula, número, especial)
+nombre: string (max 100 caracteres)
+telefono: string (opcional, max 20 caracteres)
 ```
 
 ### OUTPUT
@@ -53,25 +59,9 @@ password: str (min 8 caracteres, debe incluir: mayúscula, minúscula, número, 
 }
 ```
 
-**Error** `409 Conflict` - Usuario ya registrado
-```json
-{
-    "status": 409,
-    "error": "El usuario ya existe"
-}
-```
-
-**Error** `400 Bad Request` - Contraseña no cumple requisitos
-```json
-{
-    "status": 400,
-    "error": "La contraseña no cumple con los requisitos de seguridad"
-}
-```
-
 ---
 
-## UC-02: Iniciar Sesión
+## UC-A02: Iniciar Sesión
 
 **Descripción**: El usuario debe poder iniciar sesión con sus credenciales.
 
@@ -82,30 +72,30 @@ password: str (min 8 caracteres, debe incluir: mayúscula, minúscula, número, 
 
 | Paso | Actor | Acción |
 |------|-------|--------|
-| A | Usuario | Ingresa credenciales (username, password) |
-| B | Sistema | Valida credenciales [200 OK] |
-| C | Sistema | Genera token JWT |
-| D | Sistema | Registra sesión en base de datos |
-| E | Sistema | Retorna mensaje **Autenticación exitosa** + token |
+| A | Usuario | Ingresa email y contraseña |
+| B | Sistema | Busca usuario por email |
+| C | Sistema | Verifica hash de contraseña |
+| D | Sistema | Genera token JWT |
+| E | Sistema | Crea registro de sesión |
+| F | Sistema | Retorna token + datos de usuario |
 
 ### Flujos Alternativos
 
 | Paso | Condición | Resultado |
 |------|-----------|-----------|
-| B | Usuario no registrado | Sistema muestra error [404 Not Found] |
-| B | Contraseña incorrecta | Sistema muestra error [401 Unauthorized] |
-| B | Campos vacíos | Sistema muestra error [422 Unprocessable Entity] |
+| B | Usuario no existe | Error [404 Not Found] |
+| C | Contraseña incorrecta | Error [401 Unauthorized] |
 
 ### INPUTS
 
 ```
-username: str (max 50 caracteres)
-password: str (sin restricción de longitud para login)
+email: string
+password: string
 ```
 
 ### OUTPUT
 
-**Éxito** `200 OK` - Inicio de sesión exitoso
+**Éxito** `200 OK`
 ```json
 {
     "status": 200,
@@ -113,56 +103,33 @@ password: str (sin restricción de longitud para login)
     "user_id": 1,
     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
     "token_type": "bearer",
-    "expires_in": 3600
-}
-```
-
-**Error** `404 Not Found` - Usuario no encontrado
-```json
-{
-    "status": 404,
-    "error": "El usuario no se encuentra registrado"
-}
-```
-
-**Error** `401 Unauthorized` - Contraseña incorrecta
-```json
-{
-    "status": 401,
-    "error": "La contraseña no coincide"
+    "expires_in": 86400,
+    "user": {
+        "id": 1,
+        "email": "usuario@email.com",
+        "nombre": "Juan Pérez",
+        "is_admin": false
+    }
 }
 ```
 
 ---
 
-## UC-03: Cerrar Sesión (Logout)
+## UC-A03: Cerrar Sesión
 
 **Descripción**: El usuario autenticado debe poder cerrar su sesión.
 
 **Precondiciones**:
-- El usuario debe tener una sesión activa con token válido
+- El usuario debe tener una sesión activa
 
 ### Flujo Principal (CERRAR SESIÓN)
 
 | Paso | Actor | Acción |
 |------|-------|--------|
-| A | Usuario | Solicita cierre de sesión con token |
-| B | Sistema | Valida token JWT [200 OK] |
-| C | Sistema | Invalida sesión en base de datos |
-| D | Sistema | Retorna mensaje **Sesión cerrada exitosamente** |
-
-### Flujos Alternativos
-
-| Paso | Condición | Resultado |
-|------|-----------|-----------|
-| B | Token expirado | Sistema muestra error [401 Unauthorized] |
-| B | Token inválido | Sistema muestra error [401 Unauthorized] |
-
-### INPUTS
-
-```
-Authorization: Bearer <token_jwt>
-```
+| A | Usuario | Solicita logout |
+| B | Sistema | Valida token |
+| C | Sistema | Invalida sesión |
+| D | Sistema | Retorna confirmación |
 
 ### OUTPUT
 
@@ -174,11 +141,426 @@ Authorization: Bearer <token_jwt>
 }
 ```
 
-**Error** `401 Unauthorized` - Token inválido o expirado
+---
+
+# CASOS DE USO: CANCHAS
+
+## UC-C01: Listar Canchas
+
+**Descripción**: El usuario debe poder ver todas las canchas disponibles.
+
+**Precondiciones**:
+- El usuario debe estar autenticado
+
+### Flujo Principal (LISTAR CANCHAS)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Usuario | Solicita listado de canchas |
+| B | Sistema | Consulta canchas activas |
+| C | Sistema | Retorna lista con detalles |
+
+### OUTPUT
+
+**Éxito** `200 OK`
 ```json
 {
-    "status": 401,
-    "error": "Token inválido o expirado"
+    "status": 200,
+    "canchas": [
+        {
+            "id": 1,
+            "nombre": "Cancha 1",
+            "tipo": "Fútbol 5",
+            "precio_hora": 15000,
+            "capacidad": 10
+        }
+    ]
+}
+```
+
+---
+
+## UC-C02: Verificar Disponibilidad de Horario
+
+**Descripción**: El sistema debe verificar si un horario está disponible.
+
+**Precondiciones**:
+- El usuario debe especificar: cancha, fecha, hora_inicio, hora_fin
+
+### Flujo Principal (VERIFICAR DISPONIBILIDAD)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Usuario | Envía parámetros de búsqueda |
+| B | Sistema | Consulta horarios de la cancha |
+| C | Sistema | Busca reservas superpuestas |
+| D | Sistema | Retorna disponibilidad |
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "disponible": true,
+    "cancha": {
+        "id": 1,
+        "nombre": "Cancha 1"
+    },
+    "duracion": "2 horas",
+    "precio_total": 30000
+}
+```
+
+---
+
+# CASOS DE USO: RESERVAS
+
+## UC-R01: Crear Reserva
+
+**Descripción**: El usuario debe poder reservar una cancha.
+
+**Precondiciones**:
+- El usuario debe estar autenticado
+- La cancha debe existir y estar activa
+- El horario debe estar disponible
+
+### Flujo Principal (CREAR RESERVA)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Usuario | Selecciona cancha, fecha, horario |
+| B | Sistema | Valida datos |
+| C | Sistema | Verifica disponibilidad |
+| D | Sistema | Calcula precio total |
+| E | Sistema | Crea reserva con estado "Sin pagar" |
+| F | Sistema | Retorna confirmación |
+
+### Flujos Alternativos
+
+| Paso | Condición | Resultado |
+|------|-----------|-----------|
+| C | Horario ocupado | Error [409 Conflict] |
+| B | Fecha pasada | Error [400 Bad Request] |
+| B | Jugadores > capacidad | Error [400 Bad Request] |
+
+### INPUTS
+
+```
+cancha_id: int
+fecha: date (YYYY-MM-DD)
+hora_inicio: time (HH:MM)
+hora_fin: time (HH:MM)
+jugadores: int
+observaciones: string (opcional)
+```
+
+### OUTPUT
+
+**Éxito** `201 Created`
+```json
+{
+    "status": 201,
+    "message": "Reserva creada exitosamente",
+    "reserva": {
+        "id": 1,
+        "cancha": "Cancha 1",
+        "fecha": "2024-01-15",
+        "hora_inicio": "14:00",
+        "hora_fin": "16:00",
+        "jugadores": 8,
+        "estado_pago": "Sin pagar",
+        "precio_total": 30000
+    }
+}
+```
+
+---
+
+## UC-R02: Listar Mis Reservas
+
+**Descripción**: El usuario debe poder ver sus reservas.
+
+**Precondiciones**:
+- El usuario debe estar autenticado
+
+### Flujo Principal (LISTAR RESERVAS)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Usuario | Solicita sus reservas |
+| B | Sistema | Filtra por user_id |
+| C | Sistema | Retorna lista ordenada por fecha |
+
+### INPUTS (Opcionales)
+
+```
+fecha_desde: date (filtro)
+fecha_hasta: date (filtro)
+estado_pago: string (filtro)
+```
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "reservas": [
+        {
+            "id": 1,
+            "cancha": "Cancha 1",
+            "fecha": "2024-01-15",
+            "hora_inicio": "14:00",
+            "hora_fin": "16:00",
+            "estado_pago": "Sin pagar",
+            "precio_total": 30000
+        }
+    ],
+    "total": 1
+}
+```
+
+---
+
+## UC-R03: Ver Detalle de Reserva
+
+**Descripción**: El usuario debe poder ver el detalle de una reserva específica.
+
+**Precondiciones**:
+- El usuario debe estar autenticado
+- La reserva debe pertenecer al usuario (o ser admin)
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "reserva": {
+        "id": 1,
+        "usuario": {
+            "id": 1,
+            "nombre": "Juan Pérez",
+            "telefono": "3001234567"
+        },
+        "cancha": {
+            "id": 1,
+            "nombre": "Cancha 1",
+            "tipo": "Fútbol 5"
+        },
+        "fecha": "2024-01-15",
+        "hora_inicio": "14:00",
+        "hora_fin": "16:00",
+        "jugadores": 8,
+        "estado_pago": "Sin pagar",
+        "precio_total": 30000,
+        "observaciones": "",
+        "created_at": "2024-01-10T10:30:00Z"
+    }
+}
+```
+
+---
+
+## UC-R04: Cancelar Reserva
+
+**Descripción**: El usuario debe poder cancelar su reserva.
+
+**Precondiciones**:
+- El usuario debe estar autenticado
+- La reserva debe pertenecer al usuario
+
+### Flujo Principal (CANCELAR RESERVA)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Usuario | Solicita cancelación |
+| B | Sistema | Valida propiedad de reserva |
+| C | Sistema | Verifica que no esté pagada |
+| D | Sistema | Cancela reserva |
+| E | Sistema | Retorna confirmación |
+
+### Flujos Alternativos
+
+| Paso | Condición | Resultado |
+|------|-----------|-----------|
+| C | Reserva ya pagada | Error [400 Bad Request] |
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "message": "Reserva cancelada exitosamente"
+}
+```
+
+---
+
+## UC-R05: Actualizar Estado de Pago
+
+**Descripción**: El admin debe poder actualizar el estado de pago de una reserva.
+
+**Precondiciones**:
+- El usuario debe ser administrador
+
+### INPUTS
+
+```
+reserva_id: int
+estado_pago: "Libre" | "Abonado" | "Sin pagar" | "Pagado"
+```
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "message": "Estado de pago actualizado",
+    "reserva": {
+        "id": 1,
+        "estado_pago": "Pagado"
+    }
+}
+```
+
+---
+
+# CASOS DE USO: ADMIN
+
+## UC-AD01: Dashboard - Estadísticas
+
+**Descripción**: El admin debe poder ver estadísticas generales.
+
+**Precondiciones**:
+- El usuario debe ser administrador
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "stats": {
+        "reservas_hoy": 5,
+        "reservas_semana": 23,
+        "reservas_mes": 87,
+        "ingresos_hoy": 75000,
+        "ingresos_semana": 345000,
+        "ingresos_mes": 1305000,
+        "canchas_activas": 4
+    }
+}
+```
+
+---
+
+## UC-AD02: Reporte de Reservas por Semana
+
+**Descripción**: El admin debe poder ver un reporte semanal de reservas.
+
+**Precondiciones**:
+- El usuario debe ser administrador
+
+### INPUTS
+
+```
+fecha_inicio: date
+fecha_fin: date
+```
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "reporte": [
+        {"label": "Lunes", "total": 5},
+        {"label": "Martes", "total": 3},
+        {"label": "Miércoles", "total": 7},
+        {"label": "Jueves", "total": 4},
+        {"label": "Viernes", "total": 8},
+        {"label": "Sábado", "total": 12},
+        {"label": "Domingo", "total": 10}
+    ]
+}
+```
+
+---
+
+## UC-AD03: Gestionar Canchas
+
+**Descripción**: El admin debe poder crear, editar y desactivar canchas.
+
+### Sub-casos
+
+#### UC-AD03a: Crear Cancha
+#### UC-AD03b: Editar Cancha
+#### UC-AD03c: Desactivar Cancha
+
+### INPUTS (Crear/Editar)
+
+```
+nombre: string (max 100)
+tipo: string (max 50)
+precio_hora: decimal
+capacidad: int
+```
+
+### OUTPUT
+
+**Éxito** `201 Created / 200 OK`
+```json
+{
+    "status": 201,
+    "message": "Cancha creada exitosamente",
+    "cancha": {
+        "id": 1,
+        "nombre": "Cancha 1",
+        "tipo": "Fútbol 5",
+        "precio_hora": 15000,
+        "capacidad": 10
+    }
+}
+```
+
+---
+
+## UC-AD04: Ver Todas las Reservas
+
+**Descripción**: El admin debe poder ver y gestionar todas las reservas.
+
+### INPUTS (Filtros)
+
+```
+fecha: date (opcional)
+cancha_id: int (opcional)
+estado_pago: string (opcional)
+```
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "reservas": [
+        {
+            "id": 1,
+            "usuario": "Juan Pérez",
+            "cancha": "Cancha 1",
+            "fecha": "2024-01-15",
+            "hora_inicio": "14:00",
+            "hora_fin": "16:00",
+            "estado_pago": "Pagado",
+            "precio_total": 30000
+        }
+    ],
+    "total": 1
 }
 ```
 
