@@ -5,7 +5,7 @@ from app.database import get_db
 from app.core.security import decode_token
 from app.domains.users.models import User
 from app.domains.auth.models import Auth
-from app.core.exceptions import UnauthorizedException
+from app.core.exceptions import UnauthorizedException, ForbiddenException
 
 security = HTTPBearer(auto_error=False)
 
@@ -46,5 +46,5 @@ def get_current_admin(
     current_user: User = Depends(get_current_user)
 ) -> User:
     if not current_user.is_admin:
-        raise UnauthorizedException("Acceso denegado. Se requiere rol de administrador")
+        raise ForbiddenException("Acceso denegado. Se requiere rol de administrador")
     return current_user
