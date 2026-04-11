@@ -1,4 +1,5 @@
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.core.security import decode_token
@@ -6,11 +7,17 @@ from app.domains.users.models import User
 from app.domains.auth.models import Auth
 from app.core.exceptions import UnauthorizedException
 
+security = HTTPBearer(auto_error=False)
+
 
 def get_current_user(
     token: str | None = None,
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
+    if not token and credentials:
+        token = credentials.credentials
+
     if not token:
         raise UnauthorizedException("Token requerido")
 
@@ -18,7 +25,15 @@ def get_current_user(
     if not payload:
         raise UnauthorizedException("Token inválido o expirado")
 
-    user_id = int(payload.get("sub"))
+    sub = payload.get("sub")
+    if not isinstance(sub, (str, int)):
+        raise UnauthorizedException("Token inválido o expirado")
+
+    try:
+        user_id = int(sub)
+    except (TypeError, ValueError):
+        raise UnauthorizedException("Token inválido o expirado")
+
     user = db.query(User).filter(User.id == user_id).first()
 
     if not user:
