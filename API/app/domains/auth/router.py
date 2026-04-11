@@ -43,6 +43,7 @@ def get_me(
     if authorization and authorization.startswith("Bearer "):
         token = authorization[7:]
 
+    current_user = get_current_user(token=token, db=db)
+
     service = AuthService(db)
-    payload = service.get_current_user.__wrapped__(service, current_user.id)
-    return payload
+    return service.get_current_user(current_user.id)
