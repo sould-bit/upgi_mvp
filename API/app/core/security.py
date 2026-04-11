@@ -1,4 +1,3 @@
-import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -7,15 +6,11 @@ from passlib.context import CryptContext
 
 from app.config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["bcrypt_sha256", "bcrypt"], deprecated="auto")
 
 
-def generate_salt() -> str:
-    return secrets.token_hex(16)
-
-
-def hash_password(password: str, salt: str) -> str:
-    return pwd_context.hash(password + salt)
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

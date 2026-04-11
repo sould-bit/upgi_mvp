@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.domains.auth.models import Auth
 from app.domains.users.models import User
-from app.core.security import generate_salt, hash_password, verify_password, create_access_token
+from app.core.security import hash_password, verify_password, create_access_token
 from app.core.exceptions import NotFoundException, ConflictException, UnauthorizedException
 from app.config import settings
 import logging
@@ -19,13 +19,12 @@ class AuthService:
             logger.warning(f"Intento de registro con email existente: {email}")
             raise ConflictException("El email ya está registrado")
 
-        salt = generate_salt()
-        password_hash = hash_password(password, salt)
+        password_hash = hash_password(password)
 
         auth = Auth(
             email=email.lower(),
             password_hash=password_hash,
-            salt=salt
+            salt=""
         )
         self.db.add(auth)
         self.db.flush()
@@ -48,12 +47,28 @@ class AuthService:
             logger.warning(f"Intento de login con email no registrado: {email}")
             raise NotFoundException("El usuario no existe")
 
-        if not verify_password(password, auth.password_hash):
+        password_valid = verify_password(password, auth.password_hash)
+        migrate_legacy_password = False
+
+        if not password_valid and auth.salt:
+            legacy_password = f"{password}{auth.salt}"
+            if verify_password(legacy_password, auth.password_hash):
+                password_valid = True
+                migrate_legacy_password = True
+
+        if not password_valid:
             logger.warning(f"Intento de login con contraseña incorrecta: {email}")
             raise UnauthorizedException("Credenciales incorrectas")
 
         if not auth.is_active:
             raise UnauthorizedException("La cuenta está desactivada")
+
+        if migrate_legacy_password:
+            auth.password_hash = hash_password(password)
+            auth.salt = ""
+            self.db.add(auth)
+            self.db.commit()
+            self.db.refresh(auth)
 
         user = self.db.query(User).filter(User.auth_id == auth.id).first()
         token = create_access_token({
