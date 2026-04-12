@@ -8,6 +8,7 @@ from app.domains.users.models import User
 from app.domains.canchas.service import CanchaService
 from app.domains.canchas.schemas import (
     CanchaCreate, CanchaUpdate, CanchaResponse, CanchaDetailResponse,
+    CanchaCreateResponse,
     CanchaListResponse, DisponibilidadResponse
 )
 
@@ -55,7 +56,7 @@ def verificar_disponibilidad(
     return service.verificar_disponibilidad(cancha_id, fecha, hora_inicio, hora_fin)
 
 
-@router.post("", response_model=CanchaDetailResponse)
+@router.post("", response_model=CanchaCreateResponse)
 def crear_canha(
     data: CanchaCreate,
     current_user: User = Depends(get_current_admin),

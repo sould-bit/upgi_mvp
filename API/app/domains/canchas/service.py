@@ -135,7 +135,8 @@ class CanchaService:
                 "nombre": cancha.nombre,
                 "tipo": cancha.tipo,
                 "precio_hora": float(cancha.precio_hora),
-                "capacidad": cancha.capacidad
+                "capacidad": cancha.capacidad,
+                "is_active": cancha.is_active
             }
         }
 

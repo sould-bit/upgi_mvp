@@ -51,6 +51,12 @@ class CanchaDetailResponse(CanchaResponse):
     horarios: list[HorarioResponse] = []
 
 
+class CanchaCreateResponse(BaseModel):
+    status: int = 201
+    message: str
+    cancha: CanchaResponse
+
+
 class CanchaListResponse(BaseModel):
     status: int = 200
     canchas: list[CanchaResponse]
