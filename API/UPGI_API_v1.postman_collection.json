@@ -11,7 +11,19 @@
 			"value": "http://localhost:8000/api/v1"
 		},
 		{
-			"key": "token",
+			"key": "token_user",
+			"value": ""
+		},
+		{
+			"key": "token_admin",
+			"value": ""
+		},
+		{
+			"key": "admin_email",
+			"value": "admin@email.com"
+		},
+		{
+			"key": "admin_password",
 			"value": ""
 		},
 		{
@@ -28,7 +40,7 @@
 		"bearer": [
 			{
 				"key": "token",
-				"value": "{{token}}",
+				"value": "{{token_user}}",
 				"type": "string"
 			}
 		]
@@ -111,20 +123,20 @@
 						{
 							"listen": "test",
 							"script": {
-								"exec": [
-									"pm.test('Status 200 OK', function() {",
-									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test('Save token', function() {",
-									"    var jsonData = pm.response.json();",
-									"    if (jsonData.access_token) {",
-									"        pm.collectionVariables.set('token', jsonData.access_token);",
-									"        console.log('Token saved:', jsonData.access_token);",
-									"    }",
-									"});",
-									"",
-									"pm.test('Response has token', function() {",
+							"exec": [
+								"pm.test('Status 200 OK', function() {",
+								"    pm.response.to.have.status(200);",
+								"});",
+								"",
+								"pm.test('Save token_user', function() {",
+								"    var jsonData = pm.response.json();",
+								"    if (jsonData.access_token) {",
+								"        pm.collectionVariables.set('token_user', jsonData.access_token);",
+								"        console.log('token_user saved:', jsonData.access_token);",
+								"    }",
+								"});",
+								"",
+								"pm.test('Response has token', function() {",
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData).to.have.property('access_token');",
 									"    pm.expect(jsonData).to.have.property('user');",
@@ -140,6 +152,54 @@
 						"body": {
 							"mode": "raw",
 							"raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"Password*123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Admin",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status 200 OK', function() {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test('Save token_admin', function() {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.access_token) {",
+									"        pm.collectionVariables.set('token_admin', jsonData.access_token);",
+									"        console.log('token_admin saved:', jsonData.access_token);",
+									"    }",
+									"});",
+									"",
+									"pm.test('Response has token', function() {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('access_token');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{admin_email}}\",\n    \"password\": \"{{admin_password}}\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -182,7 +242,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -218,7 +278,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -295,7 +355,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -411,7 +471,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -500,7 +560,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -550,7 +610,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -586,7 +646,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -636,7 +696,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -672,7 +732,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -718,7 +778,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -759,7 +819,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -810,7 +870,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -856,7 +916,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -892,7 +952,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_admin}}",
 									"type": "string"
 								}
 							]
@@ -942,7 +1002,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
@@ -978,7 +1038,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "{{token}}",
+									"value": "{{token_user}}",
 									"type": "string"
 								}
 							]
