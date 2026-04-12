@@ -120,7 +120,6 @@ class ReservaService:
             raise ForbiddenException("No tienes acceso a esta reserva")
 
         usuario = self.db.query(User).filter(User.id == reserva.usuario_id).first()
-        auth = self.db.query(Reserva).query.filter_by().first()
         cancha = self.db.query(Cancha).filter(Cancha.id == reserva.cancha_id).first()
 
         return {
