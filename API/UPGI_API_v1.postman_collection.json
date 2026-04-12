@@ -13,6 +13,10 @@
 		{
 			"key": "token",
 			"value": ""
+		},
+		{
+			"key": "reserva_id",
+			"value": ""
 		}
 	],
 	"auth": {
@@ -410,18 +414,22 @@
 						{
 							"listen": "test",
 							"script": {
-								"exec": [
-									"pm.test('Status 201 Created', function() {",
-									"    pm.response.to.have.status(201);",
-									"});",
-									"",
-									"pm.test('Response has reserva data', function() {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('reserva');",
-									"});"
-								],
-								"type": "text/javascript"
-							}
+							"exec": [
+								"pm.test('Status 201 Created', function() {",
+								"    pm.response.to.have.status(201);",
+								"});",
+								"",
+								"pm.test('Response has reserva data', function() {",
+								"    var jsonData = pm.response.json();",
+								"    pm.expect(jsonData).to.have.property('reserva');",
+								"    var reservaId = jsonData.reserva.id || jsonData.reserva.reserva_id || jsonData.reserva_id || jsonData.id;",
+								"    pm.expect(reservaId, 'reserva_id debe existir en la respuesta').to.exist;",
+								"    pm.collectionVariables.set('reserva_id', String(reservaId));",
+								"    console.log('reserva_id saved:', reservaId);",
+								"});"
+							],
+							"type": "text/javascript"
+						}
 						}
 					],
 					"request": {
@@ -574,9 +582,9 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/reservas/1",
+							"raw": "{{baseUrl}}/reservas/{{reserva_id}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["reservas", "1"]
+							"path": ["reservas", "{{reserva_id}}"]
 						}
 					},
 					"response": []
@@ -610,9 +618,9 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "{{baseUrl}}/reservas/1",
+							"raw": "{{baseUrl}}/reservas/{{reserva_id}}",
 							"host": ["{{baseUrl}}"],
-							"path": ["reservas", "1"]
+							"path": ["reservas", "{{reserva_id}}"]
 						}
 					},
 					"response": []
@@ -839,9 +847,9 @@
 							}
 						},
 						"url": {
-							"raw": "{{baseUrl}}/reservas/1/pago",
+							"raw": "{{baseUrl}}/reservas/{{reserva_id}}/pago",
 							"host": ["{{baseUrl}}"],
-							"path": ["reservas", "1", "pago"]
+							"path": ["reservas", "{{reserva_id}}", "pago"]
 						}
 					},
 					"response": []
