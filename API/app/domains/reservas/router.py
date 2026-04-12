@@ -9,7 +9,7 @@ from app.domains.reservas.service import ReservaService
 from app.domains.reservas.models import EstadoPago
 from app.domains.reservas.schemas import (
     ReservaCreate, ReservaCreateResponse, ReservaResponse, ReservaListResponse,
-    ReservaDetailResponse, PagoUpdate, PagoResponse
+    ReservaDetailGetResponse, PagoUpdate, PagoResponse
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
@@ -54,7 +54,7 @@ def listar_reservas(
     )
 
 
-@router.get("/{reserva_id}", response_model=ReservaDetailResponse)
+@router.get("/{reserva_id}", response_model=ReservaDetailGetResponse)
 def get_reserva(
     reserva_id: int,
     current_user: User = Depends(get_current_user),

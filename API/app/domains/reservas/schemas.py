@@ -45,6 +45,11 @@ class ReservaDetailResponse(ReservaResponse):
     created_at: str | None = None
 
 
+class ReservaDetailGetResponse(BaseModel):
+    status: int
+    reserva: ReservaDetailResponse
+
+
 class ReservaListResponse(BaseModel):
     status: int = 200
     reservas: list[ReservaResponse]
