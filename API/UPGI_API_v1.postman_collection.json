@@ -20,11 +20,11 @@
 		},
 		{
 			"key": "admin_email",
-			"value": "admin@email.com"
+			"value": "juan@email.com"
 		},
 		{
 			"key": "admin_password",
-			"value": ""
+			"value": "Password*123"
 		},
 		{
 			"key": "reserva_id",
