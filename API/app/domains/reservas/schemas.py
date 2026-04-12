@@ -34,6 +34,12 @@ class ReservaResponse(BaseModel):
         from_attributes = True
 
 
+class ReservaCreateResponse(BaseModel):
+    status: int
+    message: str
+    reserva: ReservaResponse
+
+
 class ReservaDetailResponse(ReservaResponse):
     usuario: dict | None = None
     created_at: str | None = None

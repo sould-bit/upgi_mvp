@@ -8,14 +8,14 @@ from app.domains.users.models import User
 from app.domains.reservas.service import ReservaService
 from app.domains.reservas.models import EstadoPago
 from app.domains.reservas.schemas import (
-    ReservaCreate, ReservaResponse, ReservaListResponse,
+    ReservaCreate, ReservaCreateResponse, ReservaResponse, ReservaListResponse,
     ReservaDetailResponse, PagoUpdate, PagoResponse
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
 
 
-@router.post("", response_model=ReservaResponse)
+@router.post("", response_model=ReservaCreateResponse, status_code=201)
 def crear_reserva(
     data: ReservaCreate,
     current_user: User = Depends(get_current_user),
