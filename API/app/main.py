@@ -1,8 +1,6 @@
-from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 import logging
 
 from app.config import settings
@@ -26,9 +24,6 @@ app = FastAPI(
     version=settings.APP_VERSION,
     description="API REST para el sistema de gestión de reservas de canchas deportivas UPGI"
 )
-
-BASE_DIR = Path(__file__).resolve().parent.parent
-app.mount("/statics", StaticFiles(directory=BASE_DIR / "statics"), name="statics")
 
 app.add_middleware(
     CORSMiddleware,
