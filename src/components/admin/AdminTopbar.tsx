@@ -1,13 +1,14 @@
-import type { NotificationItem } from '../../types';
+import type { AdminProfile, NotificationItem } from '../../types';
 import AdminSearchBox from './AdminSearchBox';
 import NotificationsMenu from './NotificationsMenu';
 
 interface AdminTopbarProps {
   notifications: NotificationItem[];
   onSearch: (value: string) => void;
+  profile: AdminProfile;
 }
 
-function AdminTopbar({ notifications, onSearch }: AdminTopbarProps) {
+function AdminTopbar({ notifications, onSearch, profile }: AdminTopbarProps) {
   return (
     // Barra superior del admin con buscador, alertas y perfil.
     <header className="admin-topbar">
@@ -17,10 +18,10 @@ function AdminTopbar({ notifications, onSearch }: AdminTopbarProps) {
         <NotificationsMenu notifications={notifications} />
 
         <div className="admin-profile">
-          <span className="profile-avatar">AU</span>
+          <span className="profile-avatar">{profile.initials}</span>
           <div>
-            <strong>Admin UPGI</strong>
-            <small>Administrador</small>
+            <strong>{profile.name}</strong>
+            <small>{profile.role}</small>
           </div>
         </div>
       </div>

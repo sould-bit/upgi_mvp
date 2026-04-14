@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { ApiError, createReservation, fetchAvailability, fetchCourts } from '../lib/api';
+import { getStoredSession } from '../lib/session';
 import ReservaDetailsSection from '../components/reservas/ReservaDetailsSection';
 import ReservaFormSection from '../components/reservas/ReservaFormSection';
 import ReservasHeaderSection from '../components/reservas/ReservasHeaderSection';
-import type { ReservationFormData, ReservationSummary } from '../types';
+import type { Court, ReservationFormData, ReservationSummary } from '../types';
 
 // Valores iniciales del formulario para que cargue con algo base. estos valores seran modificados una vez tengamos datos reales.
 const reservationDefaults: ReservationFormData = {
@@ -14,10 +16,7 @@ const reservationDefaults: ReservationFormData = {
   players: 4
 };
 
-// Opciones quemadas para la demo.
-const venueOptions = ['Sede Centro', 'Sede Norte', 'Sede Sur'];
-
-const courtOptions = ['Cancha 1', 'Cancha 2', 'Cancha 3', 'Cancha 4'];
+const venueOptions = ['Complejo UPGI'];
 
 // Horarios posibles para escoger inicio y fin.
 const timeOptions = [
@@ -39,20 +38,52 @@ const timeOptions = [
   '23:00'
 ];
 
-// Precio por cancha para calcular el total de la reserva.
-const courtRateByName: Record<string, number> = {
-  'Cancha 1': 42000,
-  'Cancha 2': 42000,
-  'Cancha 3': 46000,
-  'Cancha 4': 50000
-};
-
 function ReservasPage() {
-  // Aqui guardamos lo que el usuario va escribiendo.
+  const session = getStoredSession();
   const [formData, setFormData] = useState<ReservationFormData>(reservationDefaults);
+  const [courts, setCourts] = useState<Court[]>([]);
   const [notice, setNotice] = useState('');
+  const [isLoadingCourts, setIsLoadingCourts] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [availabilityMessage, setAvailabilityMessage] = useState('Elegí una cancha, fecha y horario para consultar disponibilidad.');
+  const [availabilityPrice, setAvailabilityPrice] = useState<number | null>(null);
+  const [isAvailable, setIsAvailable] = useState(false);
 
-  // Este handler sirve para actualizar cualquier campo sin repetir logica.
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadCourts = async () => {
+      try {
+        const response = await fetchCourts();
+
+        if (!isMounted) {
+          return;
+        }
+
+        const activeCourts = response.canchas.filter((court) => court.is_active);
+        setCourts(activeCourts);
+        setFormData((current) => ({
+          ...current,
+          venue: current.venue || venueOptions[0]
+        }));
+      } catch (error) {
+        if (isMounted) {
+          setNotice(error instanceof Error ? error.message : 'No fue posible cargar las canchas.');
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoadingCourts(false);
+        }
+      }
+    };
+
+    void loadCourts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleFieldChange = <K extends keyof ReservationFormData>(
     field: K,
     value: ReservationFormData[K]
@@ -61,35 +92,101 @@ function ReservasPage() {
     setNotice('');
   };
 
-  // Con esto calculamos duracion y precio segun las horas seleccionadas.
+  const selectedCourt = useMemo(
+    () => courts.find((court) => court.nombre === formData.court) ?? null,
+    [courts, formData.court]
+  );
+
+  const courtOptions = useMemo(() => courts.map((court) => court.nombre), [courts]);
+
+  useEffect(() => {
+    const checkAvailability = async () => {
+      if (!selectedCourt || !formData.date || !formData.startTime || !formData.endTime) {
+        setIsAvailable(false);
+        setAvailabilityPrice(null);
+        setAvailabilityMessage('Elegí una cancha, fecha y horario para consultar disponibilidad.');
+        return;
+      }
+
+      if (timeOptions.indexOf(formData.endTime) <= timeOptions.indexOf(formData.startTime)) {
+        setIsAvailable(false);
+        setAvailabilityPrice(null);
+        setAvailabilityMessage('La hora final debe ser mayor a la hora inicial.');
+        return;
+      }
+
+      try {
+        const params = new URLSearchParams({
+          fecha: formData.date,
+          hora_inicio: `${formData.startTime}:00`,
+          hora_fin: `${formData.endTime}:00`
+        });
+        const response = await fetchAvailability(selectedCourt.id, params);
+        setIsAvailable(response.disponible);
+        setAvailabilityPrice(response.precio_total ?? null);
+        setAvailabilityMessage(response.mensaje ?? (response.disponible ? 'Disponible' : 'No disponible'));
+      } catch (error) {
+        setIsAvailable(false);
+        setAvailabilityPrice(null);
+        setAvailabilityMessage(error instanceof Error ? error.message : 'No se pudo consultar disponibilidad.');
+      }
+    };
+
+    void checkAvailability();
+  }, [formData.date, formData.endTime, formData.startTime, selectedCourt]);
+
   const startIndex = timeOptions.indexOf(formData.startTime);
   const endIndex = timeOptions.indexOf(formData.endTime);
   const duration = startIndex >= 0 && endIndex > startIndex ? endIndex - startIndex : 0;
-  const rate = courtRateByName[formData.court] ?? 0;
+  const rate = selectedCourt?.precio_hora ?? 0;
   const total = duration * rate;
 
-  // Este resumen se manda al componente del costado.
   const summary: ReservationSummary = {
-    availability:
-      formData.venue && formData.court && duration > 0 ? 'Disponible' : 'Completa los datos',
+    availability: availabilityMessage,
     durationLabel: duration > 0 ? `${duration} hora(s)` : 'No definido',
-    totalPriceLabel: total > 0 ? `$${total.toLocaleString('es-CO')}` : '$0'
+    totalPriceLabel: `$${(availabilityPrice ?? total).toLocaleString('es-CO')}`
   };
 
-  // Simula el envio del formulario antes de conectarlo a una API real.
-  const handleSubmit = () => {
-    if (!formData.venue || !formData.court || !formData.date || summary.availability !== 'Disponible') {
-      setNotice('Completa la seleccion para dejar la reserva lista para enviar a la API.');
+  const handleSubmit = async () => {
+    if (!selectedCourt || !formData.venue || !formData.date || !isAvailable) {
+      setNotice('Completá la selección y validá disponibilidad antes de enviar la reserva.');
       return;
     }
 
-    setNotice('Reserva lista. Este formulario ya esta preparado para conectarse a la base de datos.');
+    if (!session?.accessToken) {
+      setNotice('Primero iniciá sesión para registrar la reserva en la API.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await createReservation({
+        cancha_id: selectedCourt.id,
+        fecha: formData.date,
+        hora_inicio: `${formData.startTime}:00`,
+        hora_fin: `${formData.endTime}:00`,
+        jugadores: formData.players
+      });
+
+      setNotice(`${response.message} Reserva #${response.reserva.id} registrada correctamente.`);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        setNotice('Tu sesión no es válida o venció. Volvé a iniciar sesión.');
+      } else {
+        setNotice(error instanceof Error ? error.message : 'No fue posible crear la reserva.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Devuelve todo al estado inicial.
   const handleReset = () => {
     setFormData(reservationDefaults);
     setNotice('');
+    setAvailabilityPrice(null);
+    setAvailabilityMessage('Elegí una cancha, fecha y horario para consultar disponibilidad.');
+    setIsAvailable(false);
   };
 
   return (
@@ -111,6 +208,11 @@ function ReservasPage() {
                 venueOptions={venueOptions}
               />
 
+              {isLoadingCourts ? <div className="alert alert-secondary mt-3">Cargando canchas desde la API...</div> : null}
+              {!session?.accessToken ? (
+                <div className="alert alert-warning mt-3">Iniciá sesión para poder confirmar reservas contra la API.</div>
+              ) : null}
+              {isSubmitting ? <div className="alert alert-info mt-3">Registrando reserva en la API...</div> : null}
               {notice ? <div className="alert alert-info mt-3">{notice}</div> : null}
             </div>
 

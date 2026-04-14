@@ -5,8 +5,7 @@ interface BarChartPlaceholderProps {
 }
 
 function BarChartPlaceholder({ data }: BarChartPlaceholderProps) {
-  // Sacamos el valor mas alto para escalar todas las barras.
-  const maxValue = Math.max(...data.map((item) => item.total));
+  const maxValue = Math.max(...data.map((item) => item.total), 1);
 
   return (
     <div className="chart-placeholder">

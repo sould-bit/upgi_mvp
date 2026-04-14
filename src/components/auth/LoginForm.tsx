@@ -22,8 +22,8 @@ function LoginForm({ isLoading, onAuthenticate }: LoginFormProps) {
       nextErrors.email = 'Ingresa un email valido.';
     }
 
-    if (credentials.password.trim().length < 6) {
-      nextErrors.password = 'La contrasena debe tener al menos 6 caracteres.';
+    if (credentials.password.trim().length < 8) {
+      nextErrors.password = 'La contrasena debe tener al menos 8 caracteres.';
     }
 
     setFieldErrors(nextErrors);
@@ -71,7 +71,7 @@ function LoginForm({ isLoading, onAuthenticate }: LoginFormProps) {
           onChange={(event) =>
             setCredentials((current) => ({ ...current, password: event.target.value }))
           }
-          placeholder="admin123"
+          placeholder="Password*123"
           type="password"
           value={credentials.password}
         />
