@@ -31,6 +31,13 @@ export interface LoginCredentials {
   password: string;
 }
 
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  nombre: string;
+  telefono?: string;
+}
+
 export interface ApiUser {
   id: number;
   email: string;

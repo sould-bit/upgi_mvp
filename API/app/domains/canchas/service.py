@@ -1,4 +1,4 @@
-from datetime import date, time
+from datetime import date, datetime, time
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 from app.domains.canchas.models import Cancha, Horario
@@ -53,6 +53,14 @@ class CanchaService:
     ) -> dict:
         cancha = self.get_by_id(cancha_id)
 
+        if hora_fin <= hora_inicio:
+            return {
+                "status": 200,
+                "disponible": False,
+                "cancha": {"id": cancha.id, "nombre": cancha.nombre},
+                "mensaje": "La hora de fin debe ser posterior a la hora de inicio"
+            }
+
         dia_semana = fecha.weekday()
         if dia_semana == 6:
             dia_semana = 0
@@ -64,15 +72,7 @@ class CanchaService:
             Horario.dia_semana == dia_semana
         ).first()
 
-        if not horario:
-            return {
-                "status": 200,
-                "disponible": False,
-                "cancha": {"id": cancha.id, "nombre": cancha.nombre},
-                "mensaje": "La cancha no tiene horarios disponibles para este día"
-            }
-
-        if hora_inicio < horario.hora_inicio or hora_fin > horario.hora_fin:
+        if horario and (hora_inicio < horario.hora_inicio or hora_fin > horario.hora_fin):
             return {
                 "status": 200,
                 "disponible": False,
@@ -181,6 +181,3 @@ class CanchaService:
                 "is_active": cancha.is_active
             }
         }
-
-
-from datetime import datetime

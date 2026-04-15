@@ -44,6 +44,9 @@ function Navbar() {
             <NavLink className={({ isActive }) => `nav-link-custom ${isActive ? 'is-active' : ''}`} to="/login">
               Login
             </NavLink>
+            <NavLink className={({ isActive }) => `nav-link-custom ${isActive ? 'is-active' : ''}`} to="/register">
+              Registro
+            </NavLink>
           </div>
 
           <Link className="btn btn-outline-primary rounded-pill px-4" to="/admin/dashboard">

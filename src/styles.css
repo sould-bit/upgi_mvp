@@ -440,6 +440,20 @@ p {
   color: #b42318;
 }
 
+.auth-flow-switch {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.auth-flow-switch a {
+  color: var(--brand-blue);
+  text-decoration: none;
+}
+
+.auth-flow-switch a:hover {
+  text-decoration: underline;
+}
+
 /* Layout del panel administrativo */
 .admin-shell {
   display: grid;

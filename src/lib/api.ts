@@ -5,6 +5,7 @@ import type {
   AvailabilityResponse,
   CourtListResponse,
   LoginCredentials,
+  RegisterPayload,
   ReservationCreatePayload,
   ReservationCreateResponse,
   WeeklyReservationsResponse
@@ -54,6 +55,13 @@ export function loginRequest(credentials: LoginCredentials) {
   return apiRequest<AuthResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify(credentials)
+  });
+}
+
+export function registerRequest(payload: RegisterPayload) {
+  return apiRequest<AuthResponse>('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify(payload)
   });
 }
 
