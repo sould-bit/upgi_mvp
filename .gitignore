@@ -13,7 +13,17 @@ coverage/
 .env
 .env.*
 !.env.example
-API\app\domains\__pycache__
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+venvfastapi/
+
+# SQLite databases
+*.db
+upgi.db
+
 # Logs
 *.log
 npm-debug.log*
@@ -36,3 +46,17 @@ Thumbs.db
 # Project docs
 /ejemplo/
 /enlace_agithub_y_video_demostratico*.html
+
+# Test / scratch files
+prueba.py
+test_annotations.py
+API/nul
+
+# SQLite WAL and shared memory files
+*.db-shm
+*.db-wal
+
+# Screenshots and static assets
+API/statics/
+
+
