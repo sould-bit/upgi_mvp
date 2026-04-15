@@ -77,15 +77,17 @@ API/
 - Actualización de datos
 
 ### 3. Reservas
-- Crear reserva
+- Crear reserva (autenticado — usuario con cuenta)
+- Crear reserva pública (sin auth — consumidor reserva directo)
 - Consultar reservas
-- Cancelar reserva
+- Cancelar reserva (baja lógica — no borra registros)
 - Estados de pago (Libre, Abonado, Sin pagar, Pagado)
 
 ### 4. Canchas
 - Listado de canchas
 - Horarios disponibles
 - Gestión de espacios
+- Eliminar cancha (baja lógica — Admin)
 
 ### 5. Reportes
 - Reservas por semana

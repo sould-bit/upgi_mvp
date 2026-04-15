@@ -3,9 +3,10 @@
 - **Sistema**
   - API (FastAPI)
   - Frontend (React + TypeScript)
-  - Base de Datos (PostgreSQL)
+  - Base de Datos (SQLite en desarrollo)
 - **Cliente**
-  - Usuario regular (cliente que reserva canchas)
+  - Consumidor (cliente que reserva canchas sin cuenta — flujo público)
+  - Usuario autenticado (cliente registrado que gestiona sus reservas)
   - Administrador (gestión completa del sistema)
 
 ---
@@ -216,12 +217,12 @@ password: string
 
 # CASOS DE USO: RESERVAS
 
-## UC-R01: Crear Reserva
+## UC-R01: Crear Reserva (Autenticado)
 
-**Descripción**: El usuario debe poder reservar una cancha.
+**Descripción**: El usuario autenticado debe poder reservar una cancha.
 
 **Precondiciones**:
-- El usuario debe estar autenticado
+- El usuario debe estar autenticado (JWT)
 - La cancha debe existir y estar activa
 - El horario debe estar disponible
 
@@ -264,6 +265,72 @@ observaciones: string (opcional)
     "message": "Reserva creada exitosamente",
     "reserva": {
         "id": 1,
+        "cancha": "Cancha 1",
+        "fecha": "2024-01-15",
+        "hora_inicio": "14:00",
+        "hora_fin": "16:00",
+        "jugadores": 8,
+        "estado_pago": "Sin pagar",
+        "precio_total": 30000
+    }
+}
+```
+
+---
+
+## UC-R01b: Crear Reserva (Público — Sin Cuenta)
+
+**Descripción**: El consumidor reserva una cancha sin necesidad de cuenta ni login. El sistema crea automáticamente un usuario por email.
+
+**Precondiciones**:
+- Ninguna (no requiere autenticación)
+- La cancha debe existir y estar activa
+- El horario debe estar disponible
+
+### Flujo Principal (RESERVA PÚBLICA)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Consumidor | Ingresa nombre, email, teléfono (opcional) |
+| B | Consumidor | Selecciona cancha, fecha, horario |
+| C | Sistema | Busca Auth por email |
+| D | Sistema | Si no existe, crea Auth + User |
+| E | Sistema | Verifica disponibilidad |
+| F | Sistema | Calcula precio total |
+| G | Sistema | Crea reserva con estado "Sin pagar" |
+| H | Sistema | Retorna confirmación |
+
+### Flujos Alternativos
+
+| Paso | Condición | Resultado |
+|------|-----------|-----------|
+| D | Email ya existe | Reutiliza usuario existente, actualiza datos |
+| E | Horario ocupado | Error [409 Conflict] |
+| B | Fecha pasada | Error [400 Bad Request] |
+
+### INPUTS
+
+```
+cancha_id: int
+fecha: date (YYYY-MM-DD)
+hora_inicio: time (HH:MM)
+hora_fin: time (HH:MM)
+jugadores: int
+nombre: string
+email: string
+telefono: string (opcional)
+observaciones: string (opcional)
+```
+
+### OUTPUT
+
+**Éxito** `201 Created`
+```json
+{
+    "status": 201,
+    "message": "Reserva creada exitosamente",
+    "reserva": {
+        "id": 2,
         "cancha": "Cancha 1",
         "fecha": "2024-01-15",
         "hora_inicio": "14:00",
@@ -365,11 +432,11 @@ estado_pago: string (filtro)
 
 ## UC-R04: Cancelar Reserva
 
-**Descripción**: El usuario debe poder cancelar su reserva.
+**Descripción**: El usuario o admin puede cancelar una reserva. La cancelación es una baja lógica (no se borran registros).
 
 **Precondiciones**:
 - El usuario debe estar autenticado
-- La reserva debe pertenecer al usuario
+- La reserva debe pertenecer al usuario (o ser admin)
 
 ### Flujo Principal (CANCELAR RESERVA)
 
@@ -378,8 +445,9 @@ estado_pago: string (filtro)
 | A | Usuario | Solicita cancelación |
 | B | Sistema | Valida propiedad de reserva |
 | C | Sistema | Verifica que no esté pagada |
-| D | Sistema | Cancela reserva |
-| E | Sistema | Retorna confirmación |
+| D | Sistema | Marca `estado_pago = Libre` (baja lógica) |
+| E | Sistema | Agrega nota de auditoría en observaciones |
+| F | Sistema | Retorna confirmación |
 
 ### Flujos Alternativos
 
@@ -396,6 +464,8 @@ estado_pago: string (filtro)
     "message": "Reserva cancelada exitosamente"
 }
 ```
+
+> Las reservas canceladas (`Libre`) se excluyen automáticamente de listados operativos y reportes de ingresos.
 
 ---
 
@@ -500,7 +570,38 @@ fecha_fin: date
 
 #### UC-AD03a: Crear Cancha
 #### UC-AD03b: Editar Cancha
-#### UC-AD03c: Desactivar Cancha
+#### UC-AD03c: Desactivar Cancha (Baja Lógica)
+
+**Descripción**: El admin puede desactivar una cancha (baja lógica). No se borran datos físicos.
+
+**Precondiciones**:
+- El usuario debe ser administrador
+
+### Flujo Principal (DESACTIVAR CANCHA)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Admin | Solicita eliminar cancha |
+| B | Sistema | Verifica que no tenga reservas futuras activas |
+| C | Sistema | Marca `is_active = false` |
+| D | Sistema | Retorna confirmación |
+
+### Flujos Alternativos
+
+| Paso | Condición | Resultado |
+|------|-----------|-----------|
+| B | Tiene reservas futuras | Error [409 Conflict] |
+
+### OUTPUT
+
+**Éxito** `200 OK`
+```json
+{
+    "status": 200,
+    "message": "Cancha desactivada exitosamente",
+    "cancha": {"id": 1, "nombre": "Cancha 1"}
+}
+```
 
 ### INPUTS (Crear/Editar)
 
@@ -562,6 +663,31 @@ estado_pago: string (opcional)
     ],
     "total": 1
 }
-```
+---
+
+## UC-AD05: Admin Crea Reserva para Cliente
+
+**Descripción**: El admin puede crear una reserva especificando los datos del cliente, sin que el cliente necesite cuenta.
+
+**Precondiciones**:
+- El usuario debe ser administrador
+- La cancha debe existir y estar activa
+
+### Flujo Principal (ADMIN CREA RESERVA)
+
+| Paso | Actor | Acción |
+|------|-------|--------|
+| A | Admin | Ingresa nombre, email, teléfono del cliente |
+| B | Admin | Selecciona cancha, fecha, horario |
+| C | Sistema | Busca o crea usuario por email (mismo flujo que reserva pública) |
+| D | Sistema | Verifica disponibilidad |
+| E | Sistema | Crea reserva con estado "Sin pagar" |
+| F | Sistema | Retorna confirmación |
+
+### OUTPUT
+
+**Éxito** `201 Created`
+
+> Usa el mismo contrato que [UC-R01b: Crear Reserva (Público)](#uc-r01b-crear-reserva-público--sin-cuenta) (endpoint `POST /reservas/public`).
 
 [back to README](README.md)

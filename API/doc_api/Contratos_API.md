@@ -361,12 +361,10 @@ PUT /canchas/{cancha_id}
 
 ---
 
-# DOMINIO: RESERVAS
-
-## R01. Crear Reserva
+## C06. Eliminar Cancha (Admin)
 
 ```
-POST /reservas
+DELETE /canchas/{cancha_id}
 ```
 
 ### Headers
@@ -374,6 +372,42 @@ POST /reservas
 ```
 Authorization: Bearer <token_jwt>
 ```
+
+### Response 200 OK
+
+```json
+{
+    "status": 200,
+    "message": "Cancha desactivada exitosamente",
+    "cancha": {
+        "id": 1,
+        "nombre": "Cancha 1"
+    }
+}
+```
+
+### Errors
+
+| Code | Response |
+|------|----------|
+| 401 | `{"status": 401, "error": "No autorizado"}` |
+| 403 | `{"status": 403, "error": "Acceso denegado"}` |
+| 404 | `{"status": 404, "error": "Cancha no encontrada"}` |
+| 409 | `{"status": 409, "error": "La cancha tiene reservas futuras activas y no puede ser desactivada"}` |
+
+> **Nota**: La eliminación es una baja lógica (`is_active = false`). No se borran datos físicos. Si la cancha tiene reservas futuras con estado distinto a `Libre`, la API rechaza la operación.
+
+---
+
+# DOMINIO: RESERVAS
+
+## R01. Crear Reserva (Autenticado)
+
+```
+POST /reservas
+```
+
+> Requiere `Authorization: Bearer <token_jwt>` del usuario autenticado.
 
 ### Request
 
@@ -418,6 +452,62 @@ Authorization: Bearer <token_jwt>
 | 400 | `{"status": 400, "error": "El horario no está disponible"}` |
 | 400 | `{"status": 400, "error": "La cantidad de jugadores excede la capacidad"}` |
 | 401 | `{"status": 401, "error": "No autorizado"}` |
+| 404 | `{"status": 404, "error": "Cancha no encontrada"}` |
+
+---
+
+## R01b. Crear Reserva (Público — Sin Auth)
+
+```
+POST /reservas/public
+```
+
+> No requiere autenticación. El cliente indica sus datos directamente. El sistema crea o reutiliza el usuario por email automáticamente.
+
+### Request
+
+```json
+{
+    "cancha_id": 1,
+    "fecha": "2024-01-15",
+    "hora_inicio": "14:00",
+    "hora_fin": "16:00",
+    "jugadores": 8,
+    "nombre": "Juan Pérez",
+    "email": "juan@email.com",
+    "telefono": "3001234567",
+    "observaciones": "Llegamos tarde"
+}
+```
+
+### Response 201 Created
+
+```json
+{
+    "status": 201,
+    "message": "Reserva creada exitosamente",
+    "reserva": {
+        "id": 2,
+        "cancha": {
+            "id": 1,
+            "nombre": "Cancha 1"
+        },
+        "fecha": "2024-01-15",
+        "hora_inicio": "14:00",
+        "hora_fin": "16:00",
+        "jugadores": 8,
+        "estado_pago": "Sin pagar",
+        "precio_total": 30000.00
+    }
+}
+```
+
+### Errors
+
+| Code | Response |
+|------|----------|
+| 400 | `{"status": 400, "error": "El horario no está disponible"}` |
+| 400 | `{"status": 400, "error": "La cantidad de jugadores excede la capacidad"}` |
 | 404 | `{"status": 404, "error": "Cancha no encontrada"}` |
 
 ---
@@ -552,6 +642,8 @@ Authorization: Bearer <token_jwt>
 |------|----------|
 | 400 | `{"status": 400, "error": "No se puede cancelar una reserva pagada"}` |
 | 403 | `{"status": 403, "error": "No tienes permiso para cancelar esta reserva"}` |
+
+> **Nota**: La cancelación es una baja lógica (`estado_pago = Libre`). No se borran registros. Las reservas canceladas se excluyen automáticamente de listados operativos y reportes.
 
 ---
 
@@ -721,6 +813,8 @@ usuario_id: int [opcional]
 page: int (default 1)
 limit: int (default 50)
 ```
+
+> Sin filtro de `fecha`, retorna todas las reservas activas (excluye `Libre`). Se puede filtrar por fecha exacta, cancha, estado o usuario.
 
 ### Response 200 OK
 
