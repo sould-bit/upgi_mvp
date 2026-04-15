@@ -1,5 +1,6 @@
 // Este archivo guarda los tipos para no repetir estructuras en muchos componentes.
 export type PaymentStatus = 'Pagado' | 'Abonado' | 'Sin pagar' | 'Libre';
+export type EditablePaymentStatus = Exclude<PaymentStatus, 'Libre'>;
 
 // Datos de las cards que se ven en la pagina principal.
 export interface Feature {
@@ -16,6 +17,10 @@ export interface ReservationFormData {
   startTime: string;
   endTime: string;
   players: number;
+  // Campos del cliente — solo necesarios para reserva publica sin auth.
+  nombre: string;
+  email: string;
+  telefono: string;
 }
 
 // Resumen que se muestra al lado del formulario.
@@ -75,6 +80,25 @@ export interface CourtListResponse {
   canchas: Court[];
 }
 
+export interface CourtCreatePayload {
+  nombre: string;
+  tipo: string;
+  precio_hora: number;
+  capacidad: number;
+}
+
+export interface CourtCreateResponse {
+  status: number;
+  message: string;
+  cancha: Court;
+}
+
+export interface CourtDeleteResponse {
+  status: number;
+  message: string;
+  cancha: Court;
+}
+
 export interface AvailabilityResponse {
   status: number;
   disponible: boolean;
@@ -94,6 +118,18 @@ export interface ReservationCreatePayload {
   observaciones?: string;
 }
 
+export interface ReservationCreatePublicPayload {
+  cancha_id: number;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  jugadores: number;
+  nombre: string;
+  email: string;
+  telefono?: string;
+  observaciones?: string;
+}
+
 export interface ReservationRecord {
   id: number;
   cancha: Court;
@@ -109,6 +145,24 @@ export interface ReservationCreateResponse {
   status: number;
   message: string;
   reserva: ReservationRecord;
+}
+
+export interface ReservationPaymentUpdatePayload {
+  estado_pago: EditablePaymentStatus;
+}
+
+export interface ReservationPaymentUpdateResponse {
+  status: number;
+  message: string;
+  reserva: {
+    id: number;
+    estado_pago: string;
+  };
+}
+
+export interface ReservationCancelResponse {
+  status: number;
+  message: string;
 }
 
 export interface AdminStats {
@@ -145,6 +199,8 @@ export interface AdminReservation {
     id?: number;
     nombre?: string;
     email?: string;
+    telefono?: string | null;
+    is_socio?: boolean;
   };
   cancha: {
     id?: number;
@@ -192,9 +248,14 @@ export interface AdminProfile {
 
 // Espacio de una cancha dentro de la tabla de horarios.
 export interface CourtSlot {
+  reservationId?: number;
   court: string;
   player?: string;
   status: PaymentStatus;
+  timeRangeLabel?: string;
+  isRangeStart?: boolean;
+  // Tiempo del bloque padre (para acciones rápidas).
+  time?: string;
 }
 
 // Fila completa de una hora con sus 4 canchas.
@@ -207,4 +268,115 @@ export interface ScheduleRow {
 export interface WeeklyReservationData {
   label: string;
   total: number;
+}
+
+export interface OcupacionItem {
+  cancha_id: number;
+  cancha_nombre: string;
+  horas_reservadas: number;
+  horas_disponibles: number;
+  ocupacion_pct: number;
+}
+
+export interface OcupacionResponse {
+  status: number;
+  periodo: {
+    fecha_desde: string;
+    fecha_hasta: string;
+  };
+  ocupacion: OcupacionItem[];
+}
+
+export interface HorarioPicoItem {
+  hora: string;
+  cantidad: number;
+}
+
+export interface HorariosPicoResponse {
+  status: number;
+  periodo: {
+    fecha_desde: string;
+    fecha_hasta: string;
+  };
+  horarios: HorarioPicoItem[];
+}
+
+export interface ClienteFrecuenteItem {
+  cliente_nombre: string;
+  total_reservas: number;
+  total_gastado: number;
+}
+
+export interface ClientesFrecuentesResponse {
+  status: number;
+  periodo: {
+    fecha_desde: string;
+    fecha_hasta: string;
+  };
+  clientes: ClienteFrecuenteItem[];
+}
+
+export interface DailyItem {
+  fecha: string;
+  reservas_count: number;
+  ingreso_total: number;
+}
+
+export interface DailyResponse {
+  status: number;
+  periodo: {
+    fecha_desde: string;
+    fecha_hasta: string;
+  };
+  daily: DailyItem[];
+}
+
+export interface ReporteFiltros {
+  fechaDesde: string;
+  fechaHasta: string;
+  canchaId: number | null;
+}
+
+export type EquipoCategoria = 'Raquetas' | 'Pelotas' | 'Accesorios' | 'Iluminacion' | 'Redes';
+
+export interface Equipo {
+  id: number;
+  nombre: string;
+  categoria: EquipoCategoria;
+  precio_alquiler: number;
+  stock_total: number;
+  is_active: boolean;
+}
+
+export type EquipoCreatePayload = Omit<Equipo, 'id' | 'is_active'>;
+export type EquipoUpdatePayload = Partial<Omit<Equipo, 'id' | 'is_active'>>;
+
+export interface EquipoListResponse {
+  status: number;
+  equipos: Equipo[];
+}
+
+export interface EquipoCreateResponse {
+  status: number;
+  message: string;
+  equipo: Equipo;
+}
+
+export interface EquipoUpdateResponse {
+  status: number;
+  message: string;
+  equipo: Equipo;
+}
+
+export interface EquipoDeleteResponse {
+  status: number;
+  message: string;
+  equipo: Equipo;
+}
+
+export interface InventarioSummaryResponse {
+  status: number;
+  total_equipos: number;
+  stock_total: number;
+  valor_inventario: number;
 }

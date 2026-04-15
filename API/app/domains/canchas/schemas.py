@@ -57,6 +57,12 @@ class CanchaCreateResponse(BaseModel):
     cancha: CanchaResponse
 
 
+class CanchaDeleteResponse(BaseModel):
+    status: int = 200
+    message: str
+    cancha: CanchaResponse
+
+
 class CanchaListResponse(BaseModel):
     status: int = 200
     canchas: list[CanchaResponse]

@@ -13,6 +13,7 @@ from app.domains.users.router import router as users_router
 from app.domains.canchas.router import router as canchas_router
 from app.domains.reservas.router import router as reservas_router
 from app.domains.reportes.router import router as reportes_router
+from app.domains.inventario.router import router as inventario_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -57,6 +58,7 @@ app.include_router(users_router, prefix="/api/v1")
 app.include_router(canchas_router, prefix="/api/v1")
 app.include_router(reservas_router, prefix="/api/v1")
 app.include_router(reportes_router, prefix="/api/v1")
+app.include_router(inventario_router, prefix="/api/v1")
 
 
 @app.get("/")

@@ -11,6 +11,66 @@ class ReservaService:
     def __init__(self, db: Session):
         self.db = db
 
+    def crear_publico(
+        self,
+        cancha_id: int,
+        fecha: date,
+        hora_inicio: time,
+        hora_fin: time,
+        jugadores: int,
+        nombre: str,
+        email: str,
+        telefono: str | None = None,
+        observaciones: str | None = None
+    ) -> dict:
+        if hora_fin <= hora_inicio:
+            raise ValidationException("La hora de fin debe ser posterior a la hora de inicio")
+
+        from app.domains.auth.models import Auth
+        from app.core.security import hash_password
+
+        email_normalizado = email.lower().strip()
+
+        # Buscar auth existente por email.
+        auth = self.db.query(Auth).filter(Auth.email == email_normalizado).first()
+        if not auth:
+            # Crear Auth y User juntos.
+            auth = Auth(
+                email=email_normalizado,
+                password_hash=hash_password("RESERVA-SIN-ACCESO-2026")
+            )
+            self.db.add(auth)
+            self.db.flush()  # para obtener auth.id antes de crear User.
+
+            usuario = User(
+                auth_id=auth.id,
+                nombre=nombre.strip(),
+                telefono=telefono.strip() if telefono else None,
+                is_admin=False
+            )
+            self.db.add(usuario)
+            self.db.commit()
+            self.db.refresh(usuario)
+        else:
+            usuario = self.db.query(User).filter(User.auth_id == auth.id).first()
+            if not usuario:
+                raise NotFoundException("Usuario no encontrado para este correo")
+            # Actualizar datos por si cambiaron.
+            usuario.nombre = nombre.strip()
+            if telefono:
+                usuario.telefono = telefono.strip()
+            self.db.commit()
+
+        return self.crear(
+            usuario_id=usuario.id,
+            cancha_id=cancha_id,
+            fecha=fecha,
+            hora_inicio=hora_inicio,
+            hora_fin=hora_fin,
+            jugadores=jugadores,
+            observaciones=observaciones
+        )
+
     def crear(
         self,
         usuario_id: int,
@@ -99,6 +159,8 @@ class ReservaService:
             query = query.filter(Reserva.fecha <= fecha_hasta)
         if estado_pago:
             query = query.filter(Reserva.estado_pago == EstadoPago(estado_pago))
+        else:
+            query = query.filter(Reserva.estado_pago != EstadoPago.LIBRE)
 
         total = query.count()
         reservas = query.order_by(Reserva.fecha.desc()).offset((page - 1) * limit).limit(limit).all()
@@ -156,10 +218,18 @@ class ReservaService:
         if not is_admin and reserva.usuario_id != usuario_id:
             raise ForbiddenException("No tienes permiso para cancelar esta reserva")
 
+        if reserva.estado_pago == EstadoPago.LIBRE:
+            return {"status": 200, "message": "La reserva ya estaba cancelada"}
+
         if reserva.estado_pago == EstadoPago.PAGADO:
             raise ValidationException("No se puede cancelar una reserva pagada")
 
-        self.db.delete(reserva)
+        reserva.estado_pago = EstadoPago.LIBRE
+        reserva.observaciones = self._append_cancel_note(
+            reserva.observaciones,
+            actor_usuario_id=usuario_id,
+            is_admin=is_admin
+        )
         self.db.commit()
 
         return {"status": 200, "message": "Reserva cancelada exitosamente"}
@@ -168,6 +238,9 @@ class ReservaService:
         reserva = self.db.query(Reserva).filter(Reserva.id == reserva_id).first()
         if not reserva:
             raise NotFoundException("Reserva no encontrada")
+
+        if reserva.estado_pago == EstadoPago.LIBRE:
+            raise ValidationException("No se puede actualizar el pago de una reserva cancelada")
 
         reserva.estado_pago = estado_pago
         self.db.commit()
@@ -196,6 +269,8 @@ class ReservaService:
             query = query.filter(Reserva.cancha_id == cancha_id)
         if estado_pago:
             query = query.filter(Reserva.estado_pago == EstadoPago(estado_pago))
+        else:
+            query = query.filter(Reserva.estado_pago != EstadoPago.LIBRE)
         if usuario_id:
             query = query.filter(Reserva.usuario_id == usuario_id)
 
@@ -237,3 +312,13 @@ class ReservaService:
             "precio_total": float(reserva.precio_total),
             "created_at": reserva.created_at.isoformat() if reserva.created_at else None
         }
+
+    def _append_cancel_note(self, observaciones: str | None, actor_usuario_id: int, is_admin: bool) -> str:
+        actor = "admin" if is_admin else "usuario"
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
+        note = f"[CANCELADA por {actor} {actor_usuario_id} - {timestamp}]"
+
+        if observaciones:
+            return f"{observaciones}\n{note}"
+
+        return note

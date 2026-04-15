@@ -22,7 +22,7 @@ function RegisterForm({ isLoading, onRegister }: RegisterFormProps) {
       nextErrors.nombre = 'Ingresa tu nombre.';
     }
 
-    if (!formData.email.includes('@')) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       nextErrors.email = 'Ingresa un email valido.';
     }
 
@@ -62,7 +62,7 @@ function RegisterForm({ isLoading, onRegister }: RegisterFormProps) {
   };
 
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
+    <form className="login-form" noValidate onSubmit={handleSubmit}>
       <div>
         <label className="form-label" htmlFor="registerName">
           Nombre

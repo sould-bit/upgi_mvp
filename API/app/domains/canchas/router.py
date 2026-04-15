@@ -8,7 +8,7 @@ from app.domains.users.models import User
 from app.domains.canchas.service import CanchaService
 from app.domains.canchas.schemas import (
     CanchaCreate, CanchaUpdate, CanchaResponse, CanchaDetailResponse,
-    CanchaCreateResponse,
+    CanchaCreateResponse, CanchaDeleteResponse,
     CanchaListResponse, DisponibilidadResponse
 )
 
@@ -87,3 +87,13 @@ def actualizar_canha(
         capacidad=data.capacidad,
         is_active=data.is_active
     )
+
+
+@router.delete("/{cancha_id}", response_model=CanchaDeleteResponse)
+def eliminar_canha(
+    cancha_id: int,
+    current_user: User = Depends(get_current_admin),
+    db: Session = Depends(get_db)
+):
+    service = CanchaService(db)
+    return service.eliminar(cancha_id)

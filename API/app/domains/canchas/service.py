@@ -181,3 +181,46 @@ class CanchaService:
                 "is_active": cancha.is_active
             }
         }
+
+    def eliminar(self, cancha_id: int) -> dict:
+        cancha = self.get_by_id(cancha_id)
+
+        reservas_futuras = self.db.query(Reserva).filter(
+            Reserva.cancha_id == cancha_id,
+            Reserva.fecha >= date.today(),
+            Reserva.estado_pago != EstadoPago.LIBRE
+        ).first()
+
+        if reservas_futuras:
+            raise ConflictException("No se puede eliminar la cancha porque tiene reservas futuras asociadas")
+
+        if not cancha.is_active:
+            return {
+                "status": 200,
+                "message": "La cancha ya estaba desactivada",
+                "cancha": {
+                    "id": cancha.id,
+                    "nombre": cancha.nombre,
+                    "tipo": cancha.tipo,
+                    "precio_hora": float(cancha.precio_hora),
+                    "capacidad": cancha.capacidad,
+                    "is_active": cancha.is_active
+                }
+            }
+
+        cancha.is_active = False
+        self.db.commit()
+        self.db.refresh(cancha)
+
+        return {
+            "status": 200,
+            "message": "Cancha eliminada exitosamente",
+            "cancha": {
+                "id": cancha.id,
+                "nombre": cancha.nombre,
+                "tipo": cancha.tipo,
+                "precio_hora": float(cancha.precio_hora),
+                "capacidad": cancha.capacidad,
+                "is_active": cancha.is_active
+            }
+        }

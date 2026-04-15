@@ -4,7 +4,7 @@ function StatusLegend() {
     <div className="status-legend">
       <span>
         <i className="legend-dot dot-pagado" />
-        Pagado
+        Pagado (trazabilidad)
       </span>
       <span>
         <i className="legend-dot dot-abonado" />

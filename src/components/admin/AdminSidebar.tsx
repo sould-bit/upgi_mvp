@@ -4,8 +4,9 @@ import { NavLink } from 'react-router-dom';
 const adminNavItems = [
   { label: 'Dashboard', to: '/admin/dashboard' },
   { label: 'Reservas', to: '/admin/reservas' },
+  { label: 'Canchas', to: '/admin/canchas' },
   { label: 'Inventario', to: '/admin/inventario' },
-  { label: 'Reportes', to: '/admin/reportes' },
+  { label: 'Reportes Avanzados', to: '/admin/reportes' },
   { label: 'Configuracion', to: '/admin/configuracion' }
 ];
 
@@ -36,7 +37,7 @@ function AdminSidebar() {
 
       <div className="admin-help-card">
         <strong>AdminSidebar</strong>
-        <p>Navegacion persistente para explorar dashboard, reservas, reportes y configuracion.</p>
+        <p>Navegacion persistente para explorar dashboard, reservas, canchas, reportes y configuracion.</p>
       </div>
     </aside>
   );

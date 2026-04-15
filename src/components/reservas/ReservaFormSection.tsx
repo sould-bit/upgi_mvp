@@ -26,8 +26,9 @@ function ReservaFormSection({
   return (
     <section className="panel-card">
       <div className="section-heading">
-        <span className="eyebrow">Reserva FormSection</span>
-        <h2>Formulario de reserva</h2>
+        <span className="eyebrow">ReservaFormSection</span>
+        <h2>Reservá tu cancha</h2>
+        <p>Completá tus datos y elegí horario. No necesitás cuenta para reservar.</p>
       </div>
 
       <form
@@ -38,6 +39,50 @@ function ReservaFormSection({
           onSubmit();
         }}
       >
+        <div className="col-12">
+          <label className="form-label" htmlFor="nombre">
+            Tu nombre <span className="text-danger">*</span>
+          </label>
+          <input
+            className="form-control"
+            id="nombre"
+            onChange={(event) => onFieldChange('nombre', event.target.value)}
+            placeholder="Ej: Juan Pérez"
+            required
+            type="text"
+            value={formData.nombre}
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label className="form-label" htmlFor="email">
+            Correo electrónico <span className="text-danger">*</span>
+          </label>
+          <input
+            className="form-control"
+            id="email"
+            onChange={(event) => onFieldChange('email', event.target.value)}
+            placeholder="Ej: juan@email.com"
+            required
+            type="email"
+            value={formData.email}
+          />
+        </div>
+
+        <div className="col-md-6">
+          <label className="form-label" htmlFor="telefono">
+            Teléfono <span className="text-secondary">(opcional)</span>
+          </label>
+          <input
+            className="form-control"
+            id="telefono"
+            onChange={(event) => onFieldChange('telefono', event.target.value)}
+            placeholder="Ej: 3001234567"
+            type="tel"
+            value={formData.telefono}
+          />
+        </div>
+
         <div className="col-12">
           <label className="form-label" htmlFor="venue">
             Sede

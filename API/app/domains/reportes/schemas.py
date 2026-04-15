@@ -40,6 +40,55 @@ class ReporteIngresosResponse(BaseModel):
     reservas_pendientes: int
 
 
+class OcupacionItem(BaseModel):
+    cancha_id: int
+    cancha_nombre: str
+    horas_reservadas: float
+    horas_disponibles: float
+    ocupacion_pct: float
+
+
+class OcupacionResponse(BaseModel):
+    status: int = 200
+    periodo: dict
+    ocupacion: list[OcupacionItem]
+
+
+class HorarioPicoItem(BaseModel):
+    hora: str
+    cantidad: int
+
+
+class HorariosPicoResponse(BaseModel):
+    status: int = 200
+    periodo: dict
+    horarios: list[HorarioPicoItem]
+
+
+class ClienteFrecuenteItem(BaseModel):
+    cliente_nombre: str
+    total_reservas: int
+    total_gastado: float
+
+
+class ClientesFrecuentesResponse(BaseModel):
+    status: int = 200
+    periodo: dict
+    clientes: list[ClienteFrecuenteItem]
+
+
+class DailyItem(BaseModel):
+    fecha: str
+    reservas_count: int
+    ingreso_total: float
+
+
+class DailyResponse(BaseModel):
+    status: int = 200
+    periodo: dict
+    daily: list[DailyItem]
+
+
 class AdminReservaItem(BaseModel):
     id: int
     usuario: dict

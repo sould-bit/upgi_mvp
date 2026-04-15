@@ -1,19 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ApiError, createReservation, fetchAvailability, fetchCourts } from '../lib/api';
-import { getStoredSession } from '../lib/session';
+import { ApiError, createPublicReservation, fetchAvailability, fetchCourts } from '../lib/api';
 import ReservaDetailsSection from '../components/reservas/ReservaDetailsSection';
 import ReservaFormSection from '../components/reservas/ReservaFormSection';
 import ReservasHeaderSection from '../components/reservas/ReservasHeaderSection';
 import type { Court, ReservationFormData, ReservationSummary } from '../types';
 
-// Valores iniciales del formulario para que cargue con algo base. estos valores seran modificados una vez tengamos datos reales.
+// Valores iniciales del formulario para que cargue con algo base.
 const reservationDefaults: ReservationFormData = {
   venue: '',
   court: '',
   date: '',
   startTime: '08:00',
   endTime: '09:00',
-  players: 4
+  players: 4,
+  nombre: '',
+  email: '',
+  telefono: ''
 };
 
 const venueOptions = ['Complejo UPGI'];
@@ -39,7 +41,6 @@ const timeOptions = [
 ];
 
 function ReservasPage() {
-  const session = getStoredSession();
   const [formData, setFormData] = useState<ReservationFormData>(reservationDefaults);
   const [courts, setCourts] = useState<Court[]>([]);
   const [notice, setNotice] = useState('');
@@ -153,29 +154,29 @@ function ReservasPage() {
       return;
     }
 
-    if (!session?.accessToken) {
-      setNotice('Primero iniciá sesión para registrar la reserva en la API.');
+    if (!formData.nombre.trim() || !formData.email.trim()) {
+      setNotice('Completá tu nombre y correo electrónico para registrar la reserva.');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const response = await createReservation({
+      const response = await createPublicReservation({
         cancha_id: selectedCourt.id,
         fecha: formData.date,
         hora_inicio: `${formData.startTime}:00`,
         hora_fin: `${formData.endTime}:00`,
-        jugadores: formData.players
+        jugadores: formData.players,
+        nombre: formData.nombre.trim(),
+        email: formData.email.trim(),
+        telefono: formData.telefono.trim() || undefined
       });
 
-      setNotice(`${response.message} Reserva #${response.reserva.id} registrada correctamente.`);
+      setNotice(`${response.message} Reserva #${response.reserva.id} registrada correctamente. Te llegará un correo de confirmación.`);
+      void handleReset();
     } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        setNotice('Tu sesión no es válida o venció. Volvé a iniciar sesión.');
-      } else {
-        setNotice(error instanceof Error ? error.message : 'No fue posible crear la reserva.');
-      }
+      setNotice(error instanceof Error ? error.message : 'No fue posible crear la reserva.');
     } finally {
       setIsSubmitting(false);
     }
@@ -209,11 +210,8 @@ function ReservasPage() {
               />
 
               {isLoadingCourts ? <div className="alert alert-secondary mt-3">Cargando canchas desde la API...</div> : null}
-              {!session?.accessToken ? (
-                <div className="alert alert-warning mt-3">Iniciá sesión para poder confirmar reservas contra la API.</div>
-              ) : null}
-              {isSubmitting ? <div className="alert alert-info mt-3">Registrando reserva en la API...</div> : null}
-              {notice ? <div className="alert alert-info mt-3">{notice}</div> : null}
+              {isSubmitting ? <div className="alert alert-info mt-3">Registrando tu reserva...</div> : null}
+              {notice ? <div className={`alert mt-3 ${notice.includes('correctamente') ? 'alert-success' : 'alert-info'}`}>{notice}</div> : null}
             </div>
 
             <div className="col-lg-5">

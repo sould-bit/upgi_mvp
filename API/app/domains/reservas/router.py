@@ -8,11 +8,32 @@ from app.domains.users.models import User
 from app.domains.reservas.service import ReservaService
 from app.domains.reservas.models import EstadoPago
 from app.domains.reservas.schemas import (
-    ReservaCreate, ReservaCreateResponse, ReservaResponse, ReservaListResponse,
-    ReservaDetailGetResponse, PagoUpdate, PagoResponse
+    ReservaCreate, ReservaCreatePublic, ReservaPublicCreateResponse,
+    ReservaCreateResponse, ReservaResponse, ReservaListResponse,
+    ReservaDetailGetResponse, PagoUpdate, PagoResponse, ReservaCancelResponse
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
+
+
+# -- Reserva publica SIN auth: para consumidores que no tienen cuenta.
+@router.post("/public", response_model=ReservaPublicCreateResponse, status_code=201)
+def crear_reserva_publica(
+    data: ReservaCreatePublic,
+    db: Session = Depends(get_db)
+):
+    service = ReservaService(db)
+    return service.crear_publico(
+        cancha_id=data.cancha_id,
+        fecha=data.fecha,
+        hora_inicio=data.hora_inicio,
+        hora_fin=data.hora_fin,
+        jugadores=data.jugadores,
+        nombre=data.nombre,
+        email=data.email,
+        telefono=data.telefono,
+        observaciones=data.observaciones
+    )
 
 
 @router.post("", response_model=ReservaCreateResponse, status_code=201)
@@ -68,7 +89,7 @@ def get_reserva(
     )
 
 
-@router.delete("/{reserva_id}")
+@router.delete("/{reserva_id}", response_model=ReservaCancelResponse)
 def cancelar_reserva(
     reserva_id: int,
     current_user: User = Depends(get_current_user),

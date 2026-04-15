@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pydantic import BaseModel, EmailStr, field_validator
 import re
 
@@ -42,7 +43,7 @@ class AuthResponse(BaseModel):
     access_token: str | None = None
     token_type: str | None = None
     expires_in: int | None = None
-    user: "UserResponse" | None = None
+    user: "UserResponse | None " = None
 
 
 class UserResponse(BaseModel):

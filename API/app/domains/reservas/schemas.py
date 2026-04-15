@@ -19,6 +19,25 @@ class ReservaCreate(BaseModel):
         return v
 
 
+class ReservaCreatePublic(BaseModel):
+    cancha_id: int
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+    jugadores: int
+    nombre: str
+    email: str
+    telefono: str | None = None
+    observaciones: str | None = None
+
+    @field_validator("fecha")
+    @classmethod
+    def validate_fecha(cls, v: date) -> date:
+        if v < date.today():
+            raise ValueError("La fecha no puede ser anterior a hoy")
+        return v
+
+
 class ReservaResponse(BaseModel):
     id: int
     cancha: dict
@@ -66,3 +85,15 @@ class PagoResponse(BaseModel):
     status: int
     message: str
     reserva: dict
+
+
+class ReservaCancelResponse(BaseModel):
+    status: int
+    message: str
+
+
+class ReservaPublicCreateResponse(BaseModel):
+    status: int
+    message: str
+    reserva: dict
+    email_enviado: bool = False
