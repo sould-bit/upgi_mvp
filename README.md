@@ -1,3 +1,6 @@
+# VIDEO DEMOSTRATIVO
+[![Video en Vimeo](https://i.vimeocdn.com/video/default.jpg)](https://vimeo.com/1183625952?share=copy&fl=sv&fe=ci)
+
 # UPGI — Sistema de Gestión de Reservas Deportivas
 
 > **Evidencia académica** del proyecto UPGI. Sistema web para la gestión integral de reservas de canchas deportivas, administración de pistas, inventario de equipos y reportes analíticos.
@@ -39,30 +42,30 @@
 
 ### Requerimientos Funcionales
 
-| ID | Requerimiento | Prioridad |
-|----|---------------|-----------|
-| RF-01 | El consumidor puede reservar una cancha seleccionando fecha, hora y cantidad de jugadores | Alta |
-| RF-02 | El administrador puede crear, editar y eliminar canchas | Alta |
-| RF-03 | El administrador puede gestionar el estado de pago de cada reserva (Sin pagar / Abonado / Pagado) | Alta |
-| RF-04 | El administrador puede cancelar reservas (baja lógica) | Alta |
-| RF-05 | El administrador puede visualizar la ocupación por hora y cancha en una grilla interactiva | Alta |
-| RF-06 | El administrador puede filtrar la grilla por fecha seleccionada | Alta |
-| RF-07 | El administrador puede crear reservas directamente para clientes | Media |
-| RF-08 | El administrador puede gestionar un inventario de equipos para alquiler (CRUD) | Media |
-| RF-09 | El administrador puede visualizar reportes analíticos con gráficos interactivos | Media |
-| RF-10 | El administrador puede exportar reportes a formato Excel (.xlsx) | Media |
-| RF-11 | El sistema envía notificaciones de disponibilidad cuando se libera un horario | Baja |
-| RF-12 | El administrador puede gestionar horarios de atención por cancha y día | Baja |
+| ID    | Requerimiento                                                                                     | Prioridad |
+| ----- | ------------------------------------------------------------------------------------------------- | --------- |
+| RF-01 | El consumidor puede reservar una cancha seleccionando fecha, hora y cantidad de jugadores         | Alta      |
+| RF-02 | El administrador puede crear, editar y eliminar canchas                                           | Alta      |
+| RF-03 | El administrador puede gestionar el estado de pago de cada reserva (Sin pagar / Abonado / Pagado) | Alta      |
+| RF-04 | El administrador puede cancelar reservas (baja lógica)                                            | Alta      |
+| RF-05 | El administrador puede visualizar la ocupación por hora y cancha en una grilla interactiva        | Alta      |
+| RF-06 | El administrador puede filtrar la grilla por fecha seleccionada                                   | Alta      |
+| RF-07 | El administrador puede crear reservas directamente para clientes                                  | Media     |
+| RF-08 | El administrador puede gestionar un inventario de equipos para alquiler (CRUD)                    | Media     |
+| RF-09 | El administrador puede visualizar reportes analíticos con gráficos interactivos                   | Media     |
+| RF-10 | El administrador puede exportar reportes a formato Excel (.xlsx)                                  | Media     |
+| RF-11 | El sistema envía notificaciones de disponibilidad cuando se libera un horario                     | Baja      |
+| RF-12 | El administrador puede gestionar horarios de atención por cancha y día                            | Baja      |
 
 ### Requerimientos No Funcionales
 
-| ID | Requerimiento | Descripción |
-|----|---------------|-------------|
-| RNF-01 | Tiempo de respuesta < 2s | Para todas las operaciones principales |
-| RNF-02 | Disponibilidad | El sistema debe funcionar en navegadores modernos (Chrome, Firefox, Edge) |
-| RNF-03 | Escalabilidad | La arquitectura permite agregar módulos sin modificar los existentes |
-| RNF-04 | Seguridad | JWT para autenticación, contraseñas hasheadas, validación de inputs |
-| RNF-05 | Trazabilidad | Las reservas canceladas se marcan lógicamente para mantener historial |
+| ID     | Requerimiento            | Descripción                                                               |
+| ------ | ------------------------ | ------------------------------------------------------------------------- |
+| RNF-01 | Tiempo de respuesta < 2s | Para todas las operaciones principales                                    |
+| RNF-02 | Disponibilidad           | El sistema debe funcionar en navegadores modernos (Chrome, Firefox, Edge) |
+| RNF-03 | Escalabilidad            | La arquitectura permite agregar módulos sin modificar los existentes      |
+| RNF-04 | Seguridad                | JWT para autenticación, contraseñas hasheadas, validación de inputs       |
+| RNF-05 | Trazabilidad             | Las reservas canceladas se marcan lógicamente para mantener historial     |
 
 ---
 
@@ -96,13 +99,13 @@
 
 ### Historias de Usuario
 
-| # | Historia de Usuario | Criterio de Aceptación |
-|---|-------------------|----------------------|
-| HU-01 | Como consumidor, quiero reservar una cancha sin registrarme para simplificar el proceso | Puedo reservar en 3 pasos sin cuenta |
-| HU-02 | Como admin, quiero ver la ocupación día a día para planificar la operación | La grilla muestra todas las reservas del día seleccionado |
-| HU-03 | Como admin, quiero cambiar el estado de pago inline para no perder tiempo | El selector de pago actualiza la DB inmediatamente |
-| HU-04 | Como admin, quiero exportar reportes a Excel para presentar a contabilidad | El botón descarga un .xlsx con los 4 reportes |
-| HU-05 | Como admin, quiero gestionar equipos de alquiler para ofrecer un servicio adicional | CRUD completo de equipos con stock visible |
+| #     | Historia de Usuario                                                                     | Criterio de Aceptación                                    |
+| ----- | --------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| HU-01 | Como consumidor, quiero reservar una cancha sin registrarme para simplificar el proceso | Puedo reservar en 3 pasos sin cuenta                      |
+| HU-02 | Como admin, quiero ver la ocupación día a día para planificar la operación              | La grilla muestra todas las reservas del día seleccionado |
+| HU-03 | Como admin, quiero cambiar el estado de pago inline para no perder tiempo               | El selector de pago actualiza la DB inmediatamente        |
+| HU-04 | Como admin, quiero exportar reportes a Excel para presentar a contabilidad              | El botón descarga un .xlsx con los 4 reportes             |
+| HU-05 | Como admin, quiero gestionar equipos de alquiler para ofrecer un servicio adicional     | CRUD completo de equipos con stock visible                |
 
 ---
 
@@ -131,16 +134,16 @@ El sistema sigue una **arquitectura por capas** con separación clara entre fron
 
 ### Tecnologías Principales
 
-| Capa | Tecnología | Lenguaje | Propósito |
-|------|-------------|----------|-----------|
-| Frontend | React 18 + Vite | TypeScript | Interfaz de usuario |
-| Backend | FastAPI | Python | API REST |
-| ORM | SQLAlchemy | Python | Abstracción de base de datos |
-| Base de datos | SQLite | SQL | Persistencia |
-| Gráficos | Recharts | TypeScript | Visualización de reportes |
-| HTTP Client | Axios | TypeScript | Comunicación con API |
-| Pydantic | Pydantic v2 | Python | Validación de datos |
-| JWT | python-jose | Python | Autenticación |
+| Capa          | Tecnología      | Lenguaje   | Propósito                    |
+| ------------- | --------------- | ---------- | ---------------------------- |
+| Frontend      | React 18 + Vite | TypeScript | Interfaz de usuario          |
+| Backend       | FastAPI         | Python     | API REST                     |
+| ORM           | SQLAlchemy      | Python     | Abstracción de base de datos |
+| Base de datos | SQLite          | SQL        | Persistencia                 |
+| Gráficos      | Recharts        | TypeScript | Visualización de reportes    |
+| HTTP Client   | Axios           | TypeScript | Comunicación con API         |
+| Pydantic      | Pydantic v2     | Python     | Validación de datos          |
+| JWT           | python-jose     | Python     | Autenticación                |
 
 ---
 
@@ -418,23 +421,23 @@ Respuesta JSON al cliente
 
 ### Backend
 
-| Mecanismo | Implementación | Propósito |
-|-----------|---------------|-----------|
-| **JWT Tokens** | `python-jose` + `Auth.set_access_token()` | Autenticación sin estado |
-| **Password Hashing** | `passlib.context` con bcrypt | No almacenar contraseñas en texto plano |
-| **Dependencias FastAPI** | `get_current_user`, `get_current_admin` | Autorización por rol |
-| **Validación Pydantic** | Schemas con tipos y validadores | Sanitización de inputs en la API |
-| **CORS** | Configurado en FastAPI | Prevención de requests cruzados |
-| **Soft Delete** | `is_active = false` en vez de DELETE físico | Preserva trazabilidad |
+| Mecanismo                | Implementación                              | Propósito                               |
+| ------------------------ | ------------------------------------------- | --------------------------------------- |
+| **JWT Tokens**           | `python-jose` + `Auth.set_access_token()`   | Autenticación sin estado                |
+| **Password Hashing**     | `passlib.context` con bcrypt                | No almacenar contraseñas en texto plano |
+| **Dependencias FastAPI** | `get_current_user`, `get_current_admin`     | Autorización por rol                    |
+| **Validación Pydantic**  | Schemas con tipos y validadores             | Sanitización de inputs en la API        |
+| **CORS**                 | Configurado en FastAPI                      | Prevención de requests cruzados         |
+| **Soft Delete**          | `is_active = false` en vez de DELETE físico | Preserva trazabilidad                   |
 
 ### Frontend
 
-| Mecanismo | Implementación | Propósito |
-|-----------|---------------|-----------|
-| **JWT Storage** | `sessionStorage` (no localStorage) | Token no persiste entre sesiones |
-| **Route Guards** | Verificación de `is_admin` antes de mostrar panel | Restricción de acceso |
-| **Protected Routes** | Componente que redirige si no hay sesión | Redirección automática |
-| **Axios Interceptors** | Token inyectado en cada request | Autorización transparente |
+| Mecanismo              | Implementación                                    | Propósito                        |
+| ---------------------- | ------------------------------------------------- | -------------------------------- |
+| **JWT Storage**        | `sessionStorage` (no localStorage)                | Token no persiste entre sesiones |
+| **Route Guards**       | Verificación de `is_admin` antes de mostrar panel | Restricción de acceso            |
+| **Protected Routes**   | Componente que redirige si no hay sesión          | Redirección automática           |
+| **Axios Interceptors** | Token inyectado en cada request                   | Autorización transparente        |
 
 ---
 
@@ -488,13 +491,13 @@ Exploración → Proposal → Spec → Design → Tasks → Apply → Verify →
 
 **Artefactos guardados en Engram (memoria persistente):**
 
-| Artefacto | Descripción |
-|-----------|-------------|
-| `sdd/{change}/proposal` | Intención, alcance, riesgos, rollback |
-| `sdd/{change}/spec` | Requisitos formales con escenarios Given/When/Then |
-| `sdd/{change}/design` | Decisiones técnicas, contratos de API, modelos de datos |
-| `sdd/{change}/tasks` | Checklist atómica de implementación |
-| `sdd/{change}/apply-progress` | Progreso de la implementación |
+| Artefacto                     | Descripción                                             |
+| ----------------------------- | ------------------------------------------------------- |
+| `sdd/{change}/proposal`       | Intención, alcance, riesgos, rollback                   |
+| `sdd/{change}/spec`           | Requisitos formales con escenarios Given/When/Then      |
+| `sdd/{change}/design`         | Decisiones técnicas, contratos de API, modelos de datos |
+| `sdd/{change}/tasks`          | Checklist atómica de implementación                     |
+| `sdd/{change}/apply-progress` | Progreso de la implementación                           |
 
 ### Prácticas de Código
 
@@ -533,38 +536,38 @@ Exploración → Proposal → Spec → Design → Tasks → Apply → Verify →
 
 ### Frontend
 
-| Dependencia | Versión | Propósito |
-|------------|---------|-----------|
-| **react** | ^18 | Framework UI |
-| **react-dom** | ^18 | Renderizado |
-| **react-router-dom** | ^6 | Enrutamiento |
-| **typescript** | ^5 | Tipado estático |
-| **vite** | ^5 | Bundler y dev server |
-| **axios** | ^1 | Cliente HTTP |
-| **recharts** | ^2 | Gráficos interactivos (Recharts) |
-| **bootstrap** | ^5 | Framework CSS |
-| **react-icons** | ^5 | Íconos SVG |
+| Dependencia          | Versión | Propósito                        |
+| -------------------- | ------- | -------------------------------- |
+| **react**            | ^18     | Framework UI                     |
+| **react-dom**        | ^18     | Renderizado                      |
+| **react-router-dom** | ^6      | Enrutamiento                     |
+| **typescript**       | ^5      | Tipado estático                  |
+| **vite**             | ^5      | Bundler y dev server             |
+| **axios**            | ^1      | Cliente HTTP                     |
+| **recharts**         | ^2      | Gráficos interactivos (Recharts) |
+| **bootstrap**        | ^5      | Framework CSS                    |
+| **react-icons**      | ^5      | Íconos SVG                       |
 
 ### Backend
 
-| Dependencia | Versión | Propósito |
-|------------|---------|-----------|
-| **fastapi** | ^0.109 | Framework API |
-| **uvicorn** | ^0.27 | Servidor ASGI |
-| **sqlalchemy** | ^2 | ORM |
-| **pydantic** | ^2 | Validación de datos |
-| **python-jose** | ^3.3 | Tokens JWT |
-| **passlib** | ^1.7 | Hashing de contraseñas |
-| **python-multipart** | ^0.0.6 | Parsing de formularios |
-| **openpyxl** | ^3.1 | Generación de archivos Excel |
-| **bcrypt** | ^4.1 | Algoritmo de hashing |
+| Dependencia          | Versión | Propósito                    |
+| -------------------- | ------- | ---------------------------- |
+| **fastapi**          | ^0.109  | Framework API                |
+| **uvicorn**          | ^0.27   | Servidor ASGI                |
+| **sqlalchemy**       | ^2      | ORM                          |
+| **pydantic**         | ^2      | Validación de datos          |
+| **python-jose**      | ^3.3    | Tokens JWT                   |
+| **passlib**          | ^1.7    | Hashing de contraseñas       |
+| **python-multipart** | ^0.0.6  | Parsing de formularios       |
+| **openpyxl**         | ^3.1    | Generación de archivos Excel |
+| **bcrypt**           | ^4.1    | Algoritmo de hashing         |
 
 ### Base de Datos
 
-| Componente | Tipo | Propósito |
-|-----------|------|-----------|
-| **SQLite** | Archivo local | Base de datos embebida |
-| **SQLAlchemy** | ORM | Abstracción de consultas |
+| Componente     | Tipo          | Propósito                |
+| -------------- | ------------- | ------------------------ |
+| **SQLite**     | Archivo local | Base de datos embebida   |
+| **SQLAlchemy** | ORM           | Abstracción de consultas |
 
 ---
 
@@ -572,23 +575,23 @@ Exploración → Proposal → Spec → Design → Tasks → Apply → Verify →
 
 ### Backend
 
-| Patrón | Aplicación | Beneficio |
-|--------|-----------|-----------|
-| **Repository Pattern** | `Service` actúa como repositorio, encapsulando queries SQLAlchemy | Separación de lógica de negocio de acceso a datos |
-| **Dependency Injection** | `get_db()` como dependencia FastAPI | Gestión automática del ciclo de vida de sesiones |
-| **Enum Pattern** | `EstadoPago` como Python enum | Autocompletado, seguridad de tipos en switch/if |
-| **Value Object** | Schemas Pydantic como DTOs | Validación declarativa en la capa de entrada |
-| **Service Layer** | Cada dominio tiene su `Service` | Código organizado por dominio, fácil de testear |
+| Patrón                   | Aplicación                                                        | Beneficio                                         |
+| ------------------------ | ----------------------------------------------------------------- | ------------------------------------------------- |
+| **Repository Pattern**   | `Service` actúa como repositorio, encapsulando queries SQLAlchemy | Separación de lógica de negocio de acceso a datos |
+| **Dependency Injection** | `get_db()` como dependencia FastAPI                               | Gestión automática del ciclo de vida de sesiones  |
+| **Enum Pattern**         | `EstadoPago` como Python enum                                     | Autocompletado, seguridad de tipos en switch/if   |
+| **Value Object**         | Schemas Pydantic como DTOs                                        | Validación declarativa en la capa de entrada      |
+| **Service Layer**        | Cada dominio tiene su `Service`                                   | Código organizado por dominio, fácil de testear   |
 
 ### Frontend
 
-| Patrón | Aplicación | Beneficio |
-|--------|-----------|-----------|
-| **Container-Presentational** | `HorariosCanchasSection` (container) → `HorariosTable` (presentational) | Separación de lógica de datos de renderizado |
-| **Custom Hooks** | Lógica extraída a hooks cuando se reutiliza | DRY, componentes limpios |
-| **Atomic Design** | atoms → molecules → organisms → pages | Consistencia visual, componentes reutilizables |
-| **Optimistic Updates** | Actualización de UI antes de confirmación del servidor | UX responsiva |
-| **State Colocation** | Estado declarado en el componente que lo necesita | Menos prop drilling, mejor performance |
+| Patrón                       | Aplicación                                                              | Beneficio                                      |
+| ---------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------- |
+| **Container-Presentational** | `HorariosCanchasSection` (container) → `HorariosTable` (presentational) | Separación de lógica de datos de renderizado   |
+| **Custom Hooks**             | Lógica extraída a hooks cuando se reutiliza                             | DRY, componentes limpios                       |
+| **Atomic Design**            | atoms → molecules → organisms → pages                                   | Consistencia visual, componentes reutilizables |
+| **Optimistic Updates**       | Actualización de UI antes de confirmación del servidor                  | UX responsiva                                  |
+| **State Colocation**         | Estado declarado en el componente que lo necesita                       | Menos prop drilling, mejor performance         |
 
 ---
 
@@ -610,6 +613,7 @@ npm run dev
 ### Variables de Entorno
 
 **Backend** (`API/.env` o variables de sistema):
+
 ```
 DATABASE_URL=sqlite:///./upgi.db
 SECRET_KEY=tu-clave-secreta-aqui
@@ -619,6 +623,7 @@ DEBUG=true
 ```
 
 **Frontend** (`vite.config.ts`):
+
 ```typescript
 // VITE_API_URL se configura para desarrollo:
 // Desarrollo: http://localhost:8000
@@ -634,20 +639,20 @@ DEBUG=true
 
 ### Endpoints Principales
 
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| POST | `/api/v1/auth/login` | Login, retorna JWT |
-| POST | `/api/v1/auth/register` | Registro de admin |
-| GET | `/api/v1/canchas` | Listar canchas |
-| GET | `/api/v1/canchas/{id}/disponibilidad` | Verificar disponibilidad |
-| POST | `/api/v1/reservas/public` | Crear reserva pública (sin auth) |
-| GET | `/api/v1/admin/dashboard` | Stats del dashboard |
-| GET | `/api/v1/admin/reservas` | Listar todas las reservas |
-| PATCH | `/api/v1/admin/reservas/{id}/pago` | Actualizar estado de pago |
-| GET | `/api/v1/admin/reportes/ocupacion` | Ocupación por cancha |
-| GET | `/api/v1/admin/reportes/export/excel` | Exportar reportes a Excel |
-| GET | `/api/v1/admin/equipos` | Listar equipos |
-| POST | `/api/v1/admin/equipos` | Crear equipo |
+| Método | Endpoint                              | Descripción                      |
+| ------ | ------------------------------------- | -------------------------------- |
+| POST   | `/api/v1/auth/login`                  | Login, retorna JWT               |
+| POST   | `/api/v1/auth/register`               | Registro de admin                |
+| GET    | `/api/v1/canchas`                     | Listar canchas                   |
+| GET    | `/api/v1/canchas/{id}/disponibilidad` | Verificar disponibilidad         |
+| POST   | `/api/v1/reservas/public`             | Crear reserva pública (sin auth) |
+| GET    | `/api/v1/admin/dashboard`             | Stats del dashboard              |
+| GET    | `/api/v1/admin/reservas`              | Listar todas las reservas        |
+| PATCH  | `/api/v1/admin/reservas/{id}/pago`    | Actualizar estado de pago        |
+| GET    | `/api/v1/admin/reportes/ocupacion`    | Ocupación por cancha             |
+| GET    | `/api/v1/admin/reportes/export/excel` | Exportar reportes a Excel        |
+| GET    | `/api/v1/admin/equipos`               | Listar equipos                   |
+| POST   | `/api/v1/admin/equipos`               | Crear equipo                     |
 
 ---
 
@@ -665,14 +670,14 @@ cc1b50a chore: agregar reglas gitignore para archivos db, caches python y static
 
 ### Convenciones de Commits (Conventional Commits)
 
-| Prefijo | Uso |
-|---------|-----|
-| `feat:` | Nueva funcionalidad |
-| `fix:` | Corrección de bug |
-| `chore:` | Mantenimiento, configuración |
-| `docs:` | Documentación |
+| Prefijo     | Uso                                        |
+| ----------- | ------------------------------------------ |
+| `feat:`     | Nueva funcionalidad                        |
+| `fix:`      | Corrección de bug                          |
+| `chore:`    | Mantenimiento, configuración               |
+| `docs:`     | Documentación                              |
 | `refactor:` | Reestructuración sin cambiar funcionalidad |
-| `test:` | Tests agregados |
+| `test:`     | Tests agregados                            |
 
 ### Ramas
 
@@ -740,58 +745,70 @@ POST /api/v1/auth/login
 
 ---
 
-## 17. Componentes Construidos
+## 17. Documentación GFPI-F-135
 
-### Flujo Consumidor
-
-| Componente | Ruta | Descripción |
-|-----------|------|-------------|
-| `HomePage` | `/` | Landing page con hero, features, CTA |
-| `ReservasPage` | `/reservas` | Formulario de reserva pública |
-| `ReservaFormSection` | — | Formulario de selección de cancha/fecha/hora |
-
-### Flujo Admin
-
-| Componente | Ruta | Descripción |
-|-----------|------|-------------|
-| `AdminDashboardPage` | `/admin/*` | Shell principal con sidebar y routing por sección |
-| `AdminSidebar` | — | Navegación lateral del panel |
-| `StatsSection` | — | Cards de métricas (reservas, ingresos, canchas) |
-| `HorariosCanchasSection` | `?section=dashboard` | Grilla de ocupación con cards y DatePicker |
-| `HorariosTable` | — | Tabla con columnas por cancha y filas por hora |
-| `ReservaCell` | — | Celda individual con color por estado |
-| `ReservationModal` | — | Modal de detalle con acciones (pago, cancelar) |
-| `PaymentStatusBadge` | — | Badge visual de estado de pago |
-
-### Módulo de Reportes Avanzados
-
-| Componente | Descripción |
-|-----------|-------------|
-| `ReportesAvanzadosSection` | Página de reportes con filtros y gráficos |
-| `ReporteFiltros` | Filtros de fecha y cancha con botón "Aplicar" |
-| `IngresosChart` | Gráfico de línea (Recharts) — ingresos por día |
-| `OcupacionChart` | Gráfico de barras (Recharts) — % ocupación por cancha |
-| `HorariosPicoTable` | Tabla top 10 horarios más reservados |
-| `ClientesFrecuentesTable` | Tabla top 10 clientes frecuentes |
-| `ExportarExcelButton` | Botón que descarga reporte en formato .xlsx |
-
-### Módulo de Inventario
-
-| Componente | Descripción |
-|-----------|-------------|
-| `InventarioSection` | Sección completa con tabla, formulario y stats |
-| `InventarioStats` | 3 mini-cards: total equipos, stock, valor |
-| `EquipoForm` | Formulario crear/editar equipo inline |
-
-### Auth
-
-| Componente | Ruta | Descripción |
-|-----------|------|-------------|
-| `LoginPage` | `/login` | Página de login |
-| `LoginForm` | — | Formulario con validación |
-| `RegisterPage` | `/register` | Registro de admin |
-| `AdminSidebar` | — | Link de logout |
+| Documento                   | Ubicación                                  | Descripción                               |
+| --------------------------- | ------------------------------------------ | ----------------------------------------- |
+| **Manual Técnico**          | `documentacion/MANUAL_TECNICO.md`          | Datos de entrada/salida por módulo        |
+| **Informe de Pruebas**      | `documentacion/INFORME_PRUEBAS.md`         | Resultados de pruebas manuales (Postman)  |
+| **Verificación Requisitos** | `documentacion/VERIFICACION_REQUISITOS.md` | Cumplimiento de cada requisito GFPI-F-135 |
 
 ---
 
-*Última actualización: Abril 2026*
+## 18. Componentes Construidos
+
+### Flujo Consumidor
+
+| Componente           | Ruta        | Descripción                                  |
+| -------------------- | ----------- | -------------------------------------------- |
+| `HomePage`           | `/`         | Landing page con hero, features, CTA         |
+| `ReservasPage`       | `/reservas` | Formulario de reserva pública                |
+| `ReservaFormSection` | —           | Formulario de selección de cancha/fecha/hora |
+
+### Flujo Admin
+
+| Componente               | Ruta                 | Descripción                                       |
+| ------------------------ | -------------------- | ------------------------------------------------- |
+| `AdminDashboardPage`     | `/admin/*`           | Shell principal con sidebar y routing por sección |
+| `AdminSidebar`           | —                    | Navegación lateral del panel                      |
+| `StatsSection`           | —                    | Cards de métricas (reservas, ingresos, canchas)   |
+| `HorariosCanchasSection` | `?section=dashboard` | Grilla de ocupación con cards y DatePicker        |
+| `HorariosTable`          | —                    | Tabla con columnas por cancha y filas por hora    |
+| `ReservaCell`            | —                    | Celda individual con color por estado             |
+| `ReservationModal`       | —                    | Modal de detalle con acciones (pago, cancelar)    |
+| `PaymentStatusBadge`     | —                    | Badge visual de estado de pago                    |
+
+### Módulo de Reportes Avanzados
+
+| Componente                 | Descripción                                           |
+| -------------------------- | ----------------------------------------------------- |
+| `ReportesAvanzadosSection` | Página de reportes con filtros y gráficos             |
+| `ReporteFiltros`           | Filtros de fecha y cancha con botón "Aplicar"         |
+| `IngresosChart`            | Gráfico de línea (Recharts) — ingresos por día        |
+| `OcupacionChart`           | Gráfico de barras (Recharts) — % ocupación por cancha |
+| `HorariosPicoTable`        | Tabla top 10 horarios más reservados                  |
+| `ClientesFrecuentesTable`  | Tabla top 10 clientes frecuentes                      |
+| `ExportarExcelButton`      | Botón que descarga reporte en formato .xlsx           |
+
+### Módulo de Inventario
+
+| Componente          | Descripción                                    |
+| ------------------- | ---------------------------------------------- |
+| `InventarioSection` | Sección completa con tabla, formulario y stats |
+| `InventarioStats`   | 3 mini-cards: total equipos, stock, valor      |
+| `EquipoForm`        | Formulario crear/editar equipo inline          |
+
+### Auth
+
+| Componente     | Ruta        | Descripción               |
+| -------------- | ----------- | ------------------------- |
+| `LoginPage`    | `/login`    | Página de login           |
+| `LoginForm`    | —           | Formulario con validación |
+| `RegisterPage` | `/register` | Registro de admin         |
+| `AdminSidebar` | —           | Link de logout            |
+
+---
+
+---
+
+_Última actualización: Abril 2026_
