@@ -8,8 +8,7 @@ coverage/
 # TypeScript / Vite cache
 *.tsbuildinfo
 .vite/
-
-# Environment files
+C:\Users\jp151\lab\upgi_mvp\node_modules# Environment files
 .env
 .env.*
 !.env.example
@@ -44,6 +43,9 @@ Thumbs.db
 /contacto-contactar-cta.png
 
 # Project docs
+/env/
+/specs_to_mobil.md
+nul
 /ejemplo/
 /enlace_agithub_y_video_demostratico*.html
 
