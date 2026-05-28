@@ -15,9 +15,13 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(security),
     db: Session = Depends(get_db)
 ) -> User:
-    if not token and credentials:
-        token = credentials.credentials
-
+    # Primero verificar si hay token explícito
+    if not token:
+        # Solo si NO hay token, intentar obtener de credentials (si está resuelto)
+        if credentials and hasattr(credentials, 'credentials'):
+            token = credentials.credentials
+    
+    # Ahora sí verificar si tenemos token
     if not token:
         raise UnauthorizedException("Token requerido")
 
