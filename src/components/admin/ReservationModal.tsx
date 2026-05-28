@@ -1,15 +1,19 @@
 import { useEffect, useRef } from 'react';
-import type { AdminReservation, EditablePaymentStatus } from '../../types';
+import type { AdminReservation, EditablePaymentStatus, Equipo, ReservaAlquileresUpdatePayload } from '../../types';
 import PaymentStatusBadge from './PaymentStatusBadge';
+import ReservaAlquileresPanel from './ReservaAlquileresPanel';
 
 interface ReservationModalProps {
   reservation: AdminReservation | null;
   isOpen: boolean;
   isUpdatingPayment: boolean;
   isCancelling: boolean;
+  isSavingRentals: boolean;
+  equipos: Equipo[];
   onClose: () => void;
   onStatusChange: (reservationId: number, status: EditablePaymentStatus) => Promise<void>;
   onCancel: (reservationId: number) => Promise<void>;
+  onSaveRentals: (reservationId: number, payload: ReservaAlquileresUpdatePayload) => Promise<void>;
 }
 
 const paymentStatuses: EditablePaymentStatus[] = ['Sin pagar', 'Abonado', 'Pagado'];
@@ -19,9 +23,12 @@ function ReservationModal({
   isOpen,
   isUpdatingPayment,
   isCancelling,
+  isSavingRentals,
+  equipos,
   onClose,
   onStatusChange,
-  onCancel
+  onCancel,
+  onSaveRentals
 }: ReservationModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -191,6 +198,13 @@ function ReservationModal({
               ) : null}
             </div>
           </section>
+
+          <ReservaAlquileresPanel
+            alquileres={reservation.alquileres ?? []}
+            equipos={equipos}
+            isSaving={isSavingRentals}
+            onSave={(payload) => onSaveRentals(reservation.id, payload)}
+          />
 
           {/* Sección Info adicional */}
           <section className="reservation-modal-section reservation-modal-meta">

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AdminReservation, EditablePaymentStatus, ScheduleRow } from '../../types';
+import type { AdminReservation, EditablePaymentStatus, Equipo, ReservaAlquileresUpdatePayload, ScheduleRow } from '../../types';
 import HorariosTable from './HorariosTable';
 import PaymentStatusBadge from './PaymentStatusBadge';
 import ReservationModal from './ReservationModal';
@@ -8,11 +8,15 @@ import StatusLegend from './StatusLegend';
 interface HorariosCanchasSectionProps {
   searchTerm: string;
   rows: ScheduleRow[];
+  reservations: AdminReservation[];
   paidReservations: AdminReservation[];
   isUpdatingPayment: (reservationId?: number) => boolean;
   isCancellingReservation: (reservationId?: number) => boolean;
+  isSavingRentals: (reservationId?: number) => boolean;
+  equipos: Equipo[];
   onStatusChange: (reservationId: number, status: EditablePaymentStatus) => Promise<void>;
   onCancelReservation: (reservationId: number) => Promise<void>;
+  onSaveRentals: (reservationId: number, payload: ReservaAlquileresUpdatePayload) => Promise<void>;
   onQuickReserve?: (courtName: string, time: string) => void;
   selectedDate: string;
   onSelectedDateChange: (date: string) => void;
@@ -20,12 +24,16 @@ interface HorariosCanchasSectionProps {
 
 function HorariosCanchasSection({
   rows,
+  reservations,
   paidReservations,
   searchTerm,
   isUpdatingPayment,
   isCancellingReservation,
+  isSavingRentals,
+  equipos,
   onStatusChange,
   onCancelReservation,
+  onSaveRentals,
   onQuickReserve,
   selectedDate,
   onSelectedDateChange
@@ -83,10 +91,9 @@ function HorariosCanchasSection({
       return null;
     }
 
-    // Buscar en paidReservations.
-    const fromPaid = paidReservations.find((r) => r.id === modalReservationId);
-    if (fromPaid) {
-      return fromPaid;
+    const fromReservations = reservations.find((r) => r.id === modalReservationId);
+    if (fromReservations) {
+      return fromReservations;
     }
 
     // Buscar en rows por reservationId.
@@ -106,8 +113,8 @@ function HorariosCanchasSection({
           fecha: selectedDate,
           hora_inicio: slot.timeRangeLabel?.split(' - ')[0] ?? slot.time ?? '',
           hora_fin: slot.timeRangeLabel?.split(' - ')[1] ?? '',
-          estado_pago: slot.status,
-          precio_total: 0
+        estado_pago: slot.status,
+        precio_total: 0
         };
       }
     }
@@ -206,9 +213,12 @@ function HorariosCanchasSection({
       <ReservationModal
         isCancelling={modalReservationId ? isCancellingReservation(modalReservationId) : false}
         isOpen={isModalOpen}
+        isSavingRentals={modalReservationId ? isSavingRentals(modalReservationId) : false}
         isUpdatingPayment={modalReservationId ? isUpdatingPayment(modalReservationId) : false}
+        equipos={equipos}
         onCancel={onCancelReservation}
         onClose={closeModal}
+        onSaveRentals={onSaveRentals}
         onStatusChange={onStatusChange}
         reservation={modalReservation}
       />

@@ -8,7 +8,7 @@ coverage/
 # TypeScript / Vite cache
 *.tsbuildinfo
 .vite/
-C:\Users\jp151\lab\upgi_mvp\node_modules# Environment files
+# Environment files
 .env
 .env.*
 !.env.example
@@ -60,5 +60,9 @@ API/nul
 
 # Screenshots and static assets
 API/statics/
-
-
+# Generated test/docs artifacts - not required for runtime
+/API/doc_api/
+/API/tests/
+/README.html
+/cypress.config.ts
+/cypress/

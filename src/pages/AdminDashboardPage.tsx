@@ -9,7 +9,9 @@ import {
   fetchAdminReservations,
   fetchAvailability,
   fetchCourts,
+  fetchEquipos,
   fetchWeeklyReservations,
+  updateReservaAlquileres,
   updateReservationPaymentStatus
 } from '../lib/api';
 import { getStoredSession } from '../lib/session';
@@ -18,7 +20,9 @@ import AdminTopbar from '../components/admin/AdminTopbar';
 import DashboardWelcomeAlert from '../components/admin/DashboardWelcomeAlert';
 import HorariosCanchasSection from '../components/admin/HorariosCanchasSection';
 import InventarioSection from '../components/admin/InventarioSection';
+import ConfiguracionSection from '../components/admin/ConfiguracionSection';
 import ReportesAvanzadosSection from '../components/admin/reportes/ReportesAvanzadosSection';
+import ReservationFiltersSection, { type ReservationFilters } from '../components/admin/ReservationFiltersSection';
 import ReservasPorSemanaSection from '../components/admin/ReservasPorSemanaSection';
 import ReservaFormSection from '../components/reservas/ReservaFormSection';
 import StatsSection from '../components/admin/StatsSection';
@@ -29,8 +33,10 @@ import type {
   AdminReservationsResponse,
   Court,
   EditablePaymentStatus,
+  Equipo,
   NotificationItem,
   PaymentStatus,
+  ReservaAlquileresUpdatePayload,
   ReservationFormData,
   ReservationSummary,
   ScheduleRow,
@@ -261,6 +267,7 @@ function AdminDashboardPage() {
   const [weeklyReservations, setWeeklyReservations] = useState<WeeklyReservationsResponse | null>(null);
   const [adminReservations, setAdminReservations] = useState<AdminReservationsResponse | null>(null);
   const [courts, setCourts] = useState<Court[]>([]);
+  const [equipos, setEquipos] = useState<Equipo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmittingCourt, setIsSubmittingCourt] = useState(false);
   const [deletingCourtId, setDeletingCourtId] = useState<number | null>(null);
@@ -274,6 +281,12 @@ function AdminDashboardPage() {
   const [courtMessageTone, setCourtMessageTone] = useState<'success' | 'danger'>('success');
   const [updatingPaymentByReservationId, setUpdatingPaymentByReservationId] = useState<Record<number, boolean>>({});
   const [cancellingReservationById, setCancellingReservationById] = useState<Record<number, boolean>>({});
+  const [savingRentalsByReservationId, setSavingRentalsByReservationId] = useState<Record<number, boolean>>({});
+  const [reservationFilters, setReservationFilters] = useState<ReservationFilters>({
+    fecha: '',
+    canchaId: '',
+    estadoPago: ''
+  });
   const [errorMessage, setErrorMessage] = useState('');
 
   // Estado para el formulario de reservas del admin.
@@ -325,11 +338,12 @@ function AdminDashboardPage() {
         });
         const weeklyParams = new URLSearchParams(weekRange);
 
-        const [dashboardResponse, weeklyResponse, reservationsResponse, courtsResponse] = await Promise.all([
+        const [dashboardResponse, weeklyResponse, reservationsResponse, courtsResponse, equiposResponse] = await Promise.all([
           fetchAdminDashboard(),
           fetchWeeklyReservations(weeklyParams),
           fetchAdminReservations(reservationsParams),
-          fetchCourts()
+          fetchCourts(),
+          fetchEquipos()
         ]);
 
         if (!isMounted) {
@@ -340,6 +354,7 @@ function AdminDashboardPage() {
         setWeeklyReservations(weeklyResponse);
         setAdminReservations(reservationsResponse);
         setCourts(courtsResponse.canchas);
+        setEquipos(equiposResponse.equipos);
       } catch (error) {
         if (isMounted) {
           setErrorMessage(error instanceof Error ? error.message : 'No fue posible cargar el panel admin.');
@@ -360,14 +375,25 @@ function AdminDashboardPage() {
 
   const adminStats = useMemo(() => buildStats(dashboard), [dashboard]);
   const adminNotifications = useMemo(() => buildNotifications(adminReservations), [adminReservations]);
+  const filteredAdminReservations = useMemo(() => {
+    const reservas = adminReservations?.reservas ?? [];
+    return reservas.filter((reservation) => {
+      const matchesFecha = !reservationFilters.fecha || reservation.fecha === reservationFilters.fecha;
+      const matchesCancha =
+        !reservationFilters.canchaId || String(reservation.cancha.id ?? '') === reservationFilters.canchaId;
+      const matchesEstado = !reservationFilters.estadoPago || reservation.estado_pago === reservationFilters.estadoPago;
+
+      return matchesFecha && matchesCancha && matchesEstado;
+    });
+  }, [adminReservations, reservationFilters]);
   const paidReservations = useMemo(
-    () => adminReservations?.reservas.filter((reservation) => normalizePaymentStatus(reservation.estado_pago) === 'Pagado') ?? [],
-    [adminReservations]
+    () => filteredAdminReservations.filter((reservation) => normalizePaymentStatus(reservation.estado_pago) === 'Pagado'),
+    [filteredAdminReservations]
   );
   const operationalReservations = useMemo(
     () =>
-      adminReservations?.reservas.filter((reservation) => normalizePaymentStatus(reservation.estado_pago) !== 'Pagado') ?? [],
-    [adminReservations]
+      filteredAdminReservations.filter((reservation) => normalizePaymentStatus(reservation.estado_pago) !== 'Pagado'),
+    [filteredAdminReservations]
   );
   const scheduleRows = useMemo(
     () => buildScheduleRows(operationalReservations, courts, selectedDate),
@@ -613,6 +639,14 @@ function AdminDashboardPage() {
     return Boolean(cancellingReservationById[reservationId]);
   };
 
+  const isSavingRentals = (reservationId?: number) => {
+    if (!reservationId) {
+      return false;
+    }
+
+    return Boolean(savingRentalsByReservationId[reservationId]);
+  };
+
   const handleStatusChange = async (reservationId: number, status: EditablePaymentStatus) => {
     const previousReservations = adminReservations;
 
@@ -715,6 +749,47 @@ function AdminDashboardPage() {
     }
   };
 
+  const handleSaveRentals = async (reservationId: number, payload: ReservaAlquileresUpdatePayload) => {
+    const previousReservations = adminReservations;
+
+    setSavingRentalsByReservationId((prev) => ({ ...prev, [reservationId]: true }));
+    setErrorMessage('');
+
+    try {
+      const response = await updateReservaAlquileres(reservationId, payload);
+      setAdminReservations((prev) => {
+        if (!prev) {
+          return prev;
+        }
+
+        return {
+          ...prev,
+          reservas: prev.reservas.map((reservation) =>
+            reservation.id === reservationId
+              ? {
+                  ...reservation,
+                  alquileres: response.alquileres,
+                  precio_total: response.precio_total_reserva
+                }
+              : reservation
+          )
+        };
+      });
+
+      const equiposResponse = await fetchEquipos();
+      setEquipos(equiposResponse.equipos);
+    } catch (error) {
+      setAdminReservations(previousReservations);
+      setErrorMessage(error instanceof Error ? error.message : 'No fue posible actualizar los alquileres.');
+    } finally {
+      setSavingRentalsByReservationId((prev) => {
+        const next = { ...prev };
+        delete next[reservationId];
+        return next;
+      });
+    }
+  };
+
   const renderSection = () => {
     if (section === 'dashboard') {
       return (
@@ -747,14 +822,18 @@ function AdminDashboardPage() {
           </section>
 
           <HorariosCanchasSection
+            equipos={equipos}
+            isSavingRentals={isSavingRentals}
             selectedDate={selectedDate}
             onSelectedDateChange={setSelectedDate}
             isCancellingReservation={isCancellingReservation}
             isUpdatingPayment={isUpdatingPayment}
             onCancelReservation={handleCancelReservation}
             onQuickReserve={handleQuickReserve}
+            onSaveRentals={handleSaveRentals}
             onStatusChange={handleStatusChange}
             paidReservations={paidReservations}
+            reservations={filteredAdminReservations}
             rows={scheduleRows}
             searchTerm={searchTerm}
           />
@@ -771,7 +850,14 @@ function AdminDashboardPage() {
             title="Modulo de reservas"
           />
 
-          {/* Formulario de alta de reservas para clientes — mismo flujo que el consumer. */}
+          
+          <ReservationFiltersSection
+            courts={courts}
+            filters={reservationFilters}
+            onChange={setReservationFilters}
+            onClear={() => setReservationFilters({ fecha: '', canchaId: '', estadoPago: '' })}
+          />
+{/* Formulario de alta de reservas para clientes — mismo flujo que el consumer. */}
           <section className="panel-card mb-4">
             <div className="section-heading">
               <span className="eyebrow">Admin — Alta de reserva</span>
@@ -793,14 +879,18 @@ function AdminDashboardPage() {
           </section>
 
           <HorariosCanchasSection
+            equipos={equipos}
+            isSavingRentals={isSavingRentals}
             selectedDate={selectedDate}
             onSelectedDateChange={setSelectedDate}
             isCancellingReservation={isCancellingReservation}
             isUpdatingPayment={isUpdatingPayment}
             onCancelReservation={handleCancelReservation}
             onQuickReserve={handleQuickReserve}
+            onSaveRentals={handleSaveRentals}
             onStatusChange={handleStatusChange}
             paidReservations={paidReservations}
+            reservations={filteredAdminReservations}
             rows={scheduleRows}
             searchTerm={searchTerm}
           />
@@ -927,6 +1017,18 @@ function AdminDashboardPage() {
               <div className="alert alert-light border mt-3 mb-0">No hay canchas para los filtros actuales.</div>
             ) : null}
           </section>
+        </>
+      );
+    }
+
+    if (section === 'configuracion') {
+      return (
+        <>
+          <DashboardWelcomeAlert
+            description="Define datos operativos simples para explicar el funcionamiento del complejo en la capacitación."
+            title="Configuración"
+          />
+          <ConfiguracionSection />
         </>
       );
     }

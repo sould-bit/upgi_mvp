@@ -11,6 +11,10 @@ from app.domains.inventario.schemas import (
     EquipoUpdate,
     EquipoUpdateResponse,
     InventarioSummaryResponse,
+    MantenimientoResponse,
+    MantenimientoUpdate,
+    ReservaAlquileresResponse,
+    ReservaAlquileresUpdate,
 )
 from app.domains.inventario.service import InventarioService
 from app.domains.users.models import User
@@ -78,5 +82,62 @@ def get_inventory_summary(current_user: User = Depends(get_current_admin)):
     try:
         service = InventarioService(db)
         return service.get_summary()
+    finally:
+        db.close()
+
+
+@router.get("/reservas/{reserva_id}/alquileres", response_model=ReservaAlquileresResponse)
+def get_reserva_alquileres(
+    reserva_id: int,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = InventarioService(db)
+        return service.list_reserva_alquileres(reserva_id)
+    finally:
+        db.close()
+
+
+@router.put("/reservas/{reserva_id}/alquileres", response_model=ReservaAlquileresResponse)
+def update_reserva_alquileres(
+    reserva_id: int,
+    data: ReservaAlquileresUpdate,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = InventarioService(db)
+        return service.replace_reserva_alquileres(
+            reserva_id,
+            [item.model_dump() for item in data.items],
+        )
+    finally:
+        db.close()
+
+
+@router.patch("/equipos/{equipo_id}/mantenimiento", response_model=MantenimientoResponse)
+def marcar_mantenimiento(
+    equipo_id: int,
+    data: MantenimientoUpdate,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = InventarioService(db)
+        return service.marcar_mantenimiento(equipo_id, data.notas)
+    finally:
+        db.close()
+
+
+@router.patch("/equipos/{equipo_id}/mantenimiento/completar", response_model=MantenimientoResponse)
+def completar_mantenimiento(
+    equipo_id: int,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = InventarioService(db)
+        return service.completar_mantenimiento(equipo_id)
     finally:
         db.close()

@@ -212,6 +212,8 @@ export interface AdminReservation {
   hora_fin: string;
   estado_pago: string;
   precio_total: number;
+  observaciones?: string | null;
+  alquileres?: ReservaAlquilerEquipo[];
   created_at?: string | null;
 }
 
@@ -346,6 +348,8 @@ export interface Equipo {
   precio_alquiler: number;
   stock_total: number;
   is_active: boolean;
+  maintenance_status: 'Disponible' | 'Mantenimiento';
+  maintenance_notes?: string | null;
 }
 
 export type EquipoCreatePayload = Omit<Equipo, 'id' | 'is_active'>;
@@ -379,4 +383,57 @@ export interface InventarioSummaryResponse {
   total_equipos: number;
   stock_total: number;
   valor_inventario: number;
+  equipos_bajo_stock: number;
+  alquileres_activos: number;
+}
+
+export interface ReservaAlquilerEquipo {
+  id: number;
+  equipo_id: number;
+  equipo_nombre: string;
+  categoria: string;
+  cantidad: number;
+  precio_alquiler: number;
+  subtotal: number;
+}
+
+export interface ReservaAlquileresUpdatePayload {
+  items: {
+    equipo_id: number;
+    cantidad: number;
+  }[];
+}
+
+export interface ReservaAlquileresResponse {
+  status: number;
+  message: string;
+  reserva_id: number;
+  alquileres: ReservaAlquilerEquipo[];
+  total_alquileres: number;
+  precio_total_reserva: number;
+}
+
+export interface InventarioAlquiladoItem {
+  equipo_id: number;
+  equipo_nombre: string;
+  categoria: string;
+  cantidad_total: number;
+  ingreso_total: number;
+}
+
+export interface InventarioAlquiladoResponse {
+  status: number;
+  periodo: {
+    fecha_desde: string;
+    fecha_hasta: string;
+  };
+  inventario_alquilado: InventarioAlquiladoItem[];
+}
+
+export interface BusinessSettings {
+  sedeNombre: string;
+  horaApertura: string;
+  horaCierre: string;
+  duracionMinima: number;
+  moneda: string;
 }

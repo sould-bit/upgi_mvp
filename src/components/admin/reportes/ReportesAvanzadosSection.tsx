@@ -3,12 +3,14 @@ import {
   fetchClientesFrecuentes,
   fetchDaily,
   fetchHorariosPico,
+  fetchInventarioAlquilado,
   fetchOcupacion
 } from '../../../lib/api';
 import type {
   ClienteFrecuenteItem,
   DailyItem,
   HorarioPicoItem,
+  InventarioAlquiladoItem,
   OcupacionItem,
   ReporteFiltros
 } from '../../../types';
@@ -17,6 +19,7 @@ import ExportarExcelButton from './ExportarExcelButton';
 import HorariosPicoTable from './HorariosPicoTable';
 import IngresosChart from './IngresosChart';
 import OcupacionChart from './OcupacionChart';
+import ReporteNarrativo from './ReporteNarrativo';
 import ReporteFiltrosComponent from './ReporteFiltros';
 
 interface ReportesAvanzadosSectionProps {
@@ -54,6 +57,7 @@ function ReportesAvanzadosSection({ canchas }: ReportesAvanzadosSectionProps) {
   const [ocupacion, setOcupacion] = useState<OcupacionItem[]>([]);
   const [horarios, setHorarios] = useState<HorarioPicoItem[]>([]);
   const [clientes, setClientes] = useState<ClienteFrecuenteItem[]>([]);
+  const [inventario, setInventario] = useState<InventarioAlquiladoItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -63,17 +67,19 @@ function ReportesAvanzadosSection({ canchas }: ReportesAvanzadosSectionProps) {
 
     try {
       const params = buildParams(nextFilters);
-      const [dailyResponse, ocupacionResponse, horariosResponse, clientesResponse] = await Promise.all([
+      const [dailyResponse, ocupacionResponse, horariosResponse, clientesResponse, inventarioResponse] = await Promise.all([
         fetchDaily(params),
         fetchOcupacion(params),
         fetchHorariosPico(params),
-        fetchClientesFrecuentes(params)
+        fetchClientesFrecuentes(params),
+        fetchInventarioAlquilado(params)
       ]);
 
       setDaily(dailyResponse.daily);
       setOcupacion(ocupacionResponse.ocupacion);
       setHorarios(horariosResponse.horarios);
       setClientes(clientesResponse.clientes);
+      setInventario(inventarioResponse.inventario_alquilado);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'No fue posible cargar los reportes.');
     } finally {
@@ -94,6 +100,14 @@ function ReportesAvanzadosSection({ canchas }: ReportesAvanzadosSectionProps) {
       <ReporteFiltrosComponent canchas={canchas} initial={filters} isLoading={isLoading} onApply={handleApply} />
 
       {errorMessage ? <div className="alert alert-danger mb-0">{errorMessage}</div> : null}
+
+      <ReporteNarrativo
+        clientes={clientes}
+        daily={daily}
+        horarios={horarios}
+        inventario={inventario}
+        ocupacion={ocupacion}
+      />
 
       <div className="row g-3">
         <div className="col-12 col-xl-6">

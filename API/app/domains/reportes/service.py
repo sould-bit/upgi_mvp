@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from app.domains.reservas.models import Reserva, EstadoPago
 from app.domains.canchas.models import Cancha
+from app.domains.inventario.models import AlquilerEquipo, Equipo
 from app.domains.users.models import User
 
 
@@ -316,4 +317,52 @@ class ReporteService:
             "status": 200,
             "periodo": {"fecha_desde": fecha_desde.isoformat(), "fecha_hasta": fecha_hasta.isoformat()},
             "daily": daily,
+        }
+
+    def get_inventario_alquilado(
+        self,
+        fecha_desde: date,
+        fecha_hasta: date,
+        cancha_id: int | None = None,
+    ) -> dict:
+        self._parse_periodo(fecha_desde, fecha_hasta)
+
+        query = self.db.query(
+            Equipo.id.label("equipo_id"),
+            Equipo.nombre.label("equipo_nombre"),
+            Equipo.categoria.label("categoria"),
+            func.coalesce(func.sum(AlquilerEquipo.cantidad), 0).label("cantidad_total"),
+            func.coalesce(func.sum(AlquilerEquipo.cantidad * AlquilerEquipo.precio_alquiler), 0).label("ingreso_total"),
+        ).join(
+            AlquilerEquipo,
+            AlquilerEquipo.equipo_id == Equipo.id,
+        ).join(
+            Reserva,
+            Reserva.id == AlquilerEquipo.reserva_id,
+        ).filter(
+            Reserva.fecha >= fecha_desde,
+            Reserva.fecha <= fecha_hasta,
+            Reserva.estado_pago != EstadoPago.LIBRE,
+        )
+
+        if cancha_id is not None:
+            query = query.filter(Reserva.cancha_id == cancha_id)
+
+        rows = query.group_by(Equipo.id, Equipo.nombre, Equipo.categoria).order_by(
+            func.sum(AlquilerEquipo.cantidad).desc()
+        ).limit(10).all()
+
+        return {
+            "status": 200,
+            "periodo": {"fecha_desde": fecha_desde.isoformat(), "fecha_hasta": fecha_hasta.isoformat()},
+            "inventario_alquilado": [
+                {
+                    "equipo_id": row.equipo_id,
+                    "equipo_nombre": row.equipo_nombre,
+                    "categoria": row.categoria,
+                    "cantidad_total": int(row.cantidad_total or 0),
+                    "ingreso_total": float(row.ingreso_total or 0),
+                }
+                for row in rows
+            ],
         }

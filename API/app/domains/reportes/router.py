@@ -12,7 +12,7 @@ from app.domains.reportes.service import ReporteService
 from app.domains.reportes.schemas import (
     DashboardResponse, ReporteSemanaResponse, ReporteIngresosResponse,
     AdminReservaListResponse, OcupacionResponse, HorariosPicoResponse,
-    ClientesFrecuentesResponse, DailyResponse
+    ClientesFrecuentesResponse, DailyResponse, InventarioAlquiladoResponse
 )
 from app.domains.reservas.service import ReservaService
 
@@ -178,6 +178,29 @@ def get_reporte_daily(
         db.close()
 
 
+@router.get("/reportes/inventario-alquilado", response_model=InventarioAlquiladoResponse)
+def get_reporte_inventario_alquilado(
+    fecha_desde: date | None = Query(default=None),
+    fecha_hasta: date | None = Query(default=None),
+    cancha_id: int | None = Query(default=None),
+    current_user: User = Depends(get_current_admin)
+):
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        if fecha_desde is None:
+            fecha_desde = date.today() - timedelta(days=30)
+        if fecha_hasta is None:
+            fecha_hasta = date.today()
+        if fecha_desde > fecha_hasta:
+            raise HTTPException(status_code=400, detail="fecha_desde must be <= fecha_hasta")
+
+        service = ReporteService(db)
+        return service.get_inventario_alquilado(fecha_desde, fecha_hasta, cancha_id)
+    finally:
+        db.close()
+
+
 @router.get("/reportes/export/excel")
 def exportar_reportes_excel(
     fecha_desde: date | None = Query(default=None),
@@ -201,6 +224,7 @@ def exportar_reportes_excel(
         horarios_data = service.get_horarios_pico(fecha_desde, fecha_hasta, cancha_id)
         clientes_data = service.get_clientes_frecuentes(fecha_desde, fecha_hasta, cancha_id)
         daily_data = service.get_daily(fecha_desde, fecha_hasta, cancha_id)
+        inventario_data = service.get_inventario_alquilado(fecha_desde, fecha_hasta, cancha_id)
 
         import openpyxl
 
@@ -233,6 +257,16 @@ def exportar_reportes_excel(
         ws_clientes.append(["Cliente", "Total Reservas", "Total Gastado"])
         for item in clientes_data.get("clientes", []):
             ws_clientes.append([item["cliente_nombre"], item["total_reservas"], item["total_gastado"]])
+
+        ws_inventario = workbook.create_sheet("InventarioAlquilado")
+        ws_inventario.append(["Equipo", "Categoria", "Cantidad Total", "Ingreso Total"])
+        for item in inventario_data.get("inventario_alquilado", []):
+            ws_inventario.append([
+                item["equipo_nombre"],
+                item["categoria"],
+                item["cantidad_total"],
+                item["ingreso_total"],
+            ])
 
         buffer = BytesIO()
         workbook.save(buffer)

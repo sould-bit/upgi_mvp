@@ -9,6 +9,7 @@ import type {
   CourtDeleteResponse,
   CourtListResponse,
   DailyResponse,
+  Equipo,
   EquipoCreatePayload,
   EquipoCreateResponse,
   EquipoDeleteResponse,
@@ -17,9 +18,12 @@ import type {
   EquipoUpdateResponse,
   HorariosPicoResponse,
   InventarioSummaryResponse,
+  InventarioAlquiladoResponse,
   LoginCredentials,
   OcupacionResponse,
   RegisterPayload,
+  ReservaAlquileresResponse,
+  ReservaAlquileresUpdatePayload,
   ReservationCreatePayload,
   ReservationCreatePublicPayload,
   ReservationCreateResponse,
@@ -142,6 +146,10 @@ export function fetchDaily(params: URLSearchParams): Promise<DailyResponse> {
   return apiRequest<DailyResponse>(`/admin/reportes/daily?${params.toString()}`);
 }
 
+export function fetchInventarioAlquilado(params: URLSearchParams): Promise<InventarioAlquiladoResponse> {
+  return apiRequest<InventarioAlquiladoResponse>(`/admin/reportes/inventario-alquilado?${params.toString()}`);
+}
+
 export async function downloadReporteExcel(params: URLSearchParams): Promise<void> {
   const session = getStoredSession();
   const response = await fetch(`${API_BASE_URL}/admin/reportes/export/excel?${params.toString()}`, {
@@ -217,6 +225,34 @@ export function deleteEquipo(id: number): Promise<EquipoDeleteResponse> {
 
 export function fetchInventarioSummary(): Promise<InventarioSummaryResponse> {
   return apiRequest<InventarioSummaryResponse>('/admin/inventario');
+}
+
+export function marcarMantenimiento(
+  equipoId: number,
+  notas?: string
+): Promise<{ status: number; message: string; equipo: Equipo }> {
+  return apiRequest(`/admin/equipos/${equipoId}/mantenimiento`, {
+    method: 'PATCH',
+    body: JSON.stringify({ notas: notas || null })
+  });
+}
+
+export function completarMantenimiento(
+  equipoId: number
+): Promise<{ status: number; message: string; equipo: Equipo }> {
+  return apiRequest(`/admin/equipos/${equipoId}/mantenimiento/completar`, {
+    method: 'PATCH'
+  });
+}
+
+export function updateReservaAlquileres(
+  reservaId: number,
+  payload: ReservaAlquileresUpdatePayload
+): Promise<ReservaAlquileresResponse> {
+  return apiRequest<ReservaAlquileresResponse>(`/admin/reservas/${reservaId}/alquileres`, {
+    method: 'PUT',
+    body: JSON.stringify(payload)
+  });
 }
 
 export { ApiError, API_BASE_URL };

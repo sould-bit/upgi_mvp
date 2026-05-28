@@ -17,6 +17,8 @@ function InventarioStats({ summary, isLoading }: InventarioStatsProps) {
   const equipos = summary?.total_equipos ?? 0;
   const stock = summary?.stock_total ?? 0;
   const valor = summary?.valor_inventario ?? 0;
+  const bajoStock = summary?.equipos_bajo_stock ?? 0;
+  const alquileresActivos = summary?.alquileres_activos ?? 0;
 
   return (
     <div className="stats-grid mb-4">
@@ -31,6 +33,14 @@ function InventarioStats({ summary, isLoading }: InventarioStatsProps) {
       <div className="panel-card stat-mini-card">
         <span className="stat-mini-label">Valor inventario</span>
         <span className="stat-mini-value">{isLoading ? '...' : formatCOP(valor)}</span>
+      </div>
+      <div className="panel-card stat-mini-card">
+        <span className="stat-mini-label">Bajo stock</span>
+        <span className={`stat-mini-value ${bajoStock > 0 ? 'text-danger' : ''}`}>{isLoading ? '...' : bajoStock}</span>
+      </div>
+      <div className="panel-card stat-mini-card">
+        <span className="stat-mini-label">Equipos alquilados</span>
+        <span className="stat-mini-value">{isLoading ? '...' : alquileresActivos}</span>
       </div>
     </div>
   );

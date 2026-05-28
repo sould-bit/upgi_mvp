@@ -1,5 +1,3 @@
-# VIDEO DEMOSTRATIVO
-[![Video en Vimeo](https://tse2.mm.bing.net/th/id/OIP.97asWgpzgKFtFCs2pAXCDwHaHa?rs=1&pid=ImgDetMain&o=7&rm=3)](https://vimeo.com/1183625952?share=copy&fl=sv&fe=ci)
 
 # UPGI — Sistema de Gestión de Reservas Deportivas
 

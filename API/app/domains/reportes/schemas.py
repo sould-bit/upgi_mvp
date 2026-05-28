@@ -98,6 +98,8 @@ class AdminReservaItem(BaseModel):
     hora_fin: str
     estado_pago: str
     precio_total: float
+    observaciones: str | None = None
+    alquileres: list[dict] = []
     created_at: str | None = None
 
 
@@ -107,3 +109,17 @@ class AdminReservaListResponse(BaseModel):
     total: int
     page: int = 1
     limit: int = 50
+
+
+class InventarioAlquiladoItem(BaseModel):
+    equipo_id: int
+    equipo_nombre: str
+    categoria: str
+    cantidad_total: int
+    ingreso_total: float
+
+
+class InventarioAlquiladoResponse(BaseModel):
+    status: int = 200
+    periodo: dict
+    inventario_alquilado: list[InventarioAlquiladoItem]

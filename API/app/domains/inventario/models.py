@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, DateTime, DECIMAL, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, DECIMAL, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from app.db.base import Base
@@ -15,6 +15,8 @@ class Equipo(Base):
     precio_alquiler = Column(DECIMAL(10, 2), nullable=False)
     stock_total = Column(Integer, nullable=False)
     is_active = Column(Boolean, default=True)
+    maintenance_status = Column(String(20), nullable=False, default="Disponible")
+    maintenance_notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     alquileres = relationship("AlquilerEquipo", back_populates="equipo")

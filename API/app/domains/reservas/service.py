@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, extract
 from app.domains.reservas.models import Reserva, EstadoPago
 from app.domains.canchas.models import Cancha
+from app.domains.inventario.models import AlquilerEquipo, Equipo
 from app.domains.users.models import User
 from app.core.exceptions import NotFoundException, ConflictException, ValidationException, ForbiddenException
 
@@ -301,16 +302,36 @@ class ReservaService:
     def _format_reserva_admin(self, reserva: Reserva) -> dict:
         usuario = self.db.query(User).filter(User.id == reserva.usuario_id).first()
         cancha = self.db.query(Cancha).filter(Cancha.id == reserva.cancha_id).first()
+        alquileres = self.db.query(AlquilerEquipo).filter(AlquilerEquipo.reserva_id == reserva.id).all()
         return {
             "id": reserva.id,
-            "usuario": {"id": usuario.id, "nombre": usuario.nombre},
+            "usuario": {
+                "id": usuario.id,
+                "nombre": usuario.nombre,
+                "email": usuario.auth.email if usuario and usuario.auth else None,
+                "telefono": usuario.telefono if usuario else None,
+            },
             "cancha": {"id": cancha.id, "nombre": cancha.nombre},
             "fecha": reserva.fecha,
             "hora_inicio": reserva.hora_inicio.strftime("%H:%M"),
             "hora_fin": reserva.hora_fin.strftime("%H:%M"),
             "estado_pago": reserva.estado_pago.value,
             "precio_total": float(reserva.precio_total),
-            "created_at": reserva.created_at.isoformat() if reserva.created_at else None
+            "observaciones": reserva.observaciones,
+            "created_at": reserva.created_at.isoformat() if reserva.created_at else None,
+            "alquileres": [self._format_alquiler(alquiler) for alquiler in alquileres],
+        }
+
+    def _format_alquiler(self, alquiler: AlquilerEquipo) -> dict:
+        equipo = self.db.query(Equipo).filter(Equipo.id == alquiler.equipo_id).first()
+        return {
+            "id": alquiler.id,
+            "equipo_id": alquiler.equipo_id,
+            "equipo_nombre": equipo.nombre if equipo else "Equipo",
+            "categoria": equipo.categoria if equipo else "Sin categoria",
+            "cantidad": alquiler.cantidad,
+            "precio_alquiler": float(alquiler.precio_alquiler),
+            "subtotal": float(alquiler.precio_alquiler) * alquiler.cantidad,
         }
 
     def _append_cancel_note(self, observaciones: str | None, actor_usuario_id: int, is_admin: bool) -> str:
