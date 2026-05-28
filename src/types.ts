@@ -497,3 +497,34 @@ export interface PrecioPreviewResponse {
   precio_final: number;
   desglose: { regla: string; tipo: string; descuento: number }[];
 }
+
+export interface ListaEsperaEntry {
+  id: number;
+  cancha_id: number;
+  cliente_nombre: string;
+  cliente_email?: string | null;
+  cliente_telefono?: string | null;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  posicion: number;
+  estado: 'ESPERANDO' | 'PROMOVIDA' | 'CANCELADA';
+  created_at?: string | null;
+}
+
+export interface ListaEsperaListResponse {
+  status: number;
+  entradas: ListaEsperaEntry[];
+}
+
+export interface ListaEsperaCreateResponse {
+  status: number;
+  message: string;
+  entrada: ListaEsperaEntry;
+}
+
+export interface ListaEsperaPromoteResponse {
+  status: number;
+  message: string;
+  reserva_id?: number | null;
+}

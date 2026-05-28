@@ -1,7 +1,7 @@
 from datetime import datetime, date, time, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, extract
-from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva, ReglaPrecio
+from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva, ReglaPrecio, ListaEspera
 from app.domains.canchas.models import Cancha
 from app.domains.inventario.models import AlquilerEquipo, Equipo
 from app.domains.users.models import User
@@ -492,4 +492,153 @@ class ReservaService:
             "hora_fin": regla.hora_fin.strftime("%H:%M") if regla.hora_fin else None,
             "es_socio": regla.es_socio,
             "is_active": regla.is_active,
+        }
+
+    def listar_lista_espera(
+        self,
+        fecha: date | None = None,
+        cancha_id: int | None = None,
+    ) -> dict:
+        query = self.db.query(ListaEspera).filter(ListaEspera.estado == "ESPERANDO")
+        if fecha:
+            query = query.filter(ListaEspera.fecha == fecha)
+        if cancha_id:
+            query = query.filter(ListaEspera.cancha_id == cancha_id)
+
+        entradas = query.order_by(ListaEspera.posicion).all()
+        return {
+            "status": 200,
+            "entradas": [self._format_lista_espera(e) for e in entradas],
+        }
+
+    def unir_lista_espera(self, data) -> dict:
+        # Calcular siguiente posición para este slot.
+        existentes = (
+            self.db.query(ListaEspera)
+            .filter(
+                ListaEspera.cancha_id == data.cancha_id,
+                ListaEspera.fecha == data.fecha,
+                ListaEspera.hora_inicio == data.hora_inicio,
+                ListaEspera.hora_fin == data.hora_fin,
+                ListaEspera.estado == "ESPERANDO",
+            )
+            .count()
+        )
+
+        entrada = ListaEspera(
+            cancha_id=data.cancha_id,
+            fecha=data.fecha,
+            hora_inicio=data.hora_inicio,
+            hora_fin=data.hora_fin,
+            cliente_nombre=data.cliente_nombre,
+            cliente_email=data.cliente_email,
+            cliente_telefono=data.cliente_telefono,
+            posicion=existentes + 1,
+        )
+        self.db.add(entrada)
+        self.db.commit()
+        self.db.refresh(entrada)
+
+        return {
+            "status": 201,
+            "message": f"Agregado a lista de espera. Posición: {entrada.posicion}",
+            "entrada": self._format_lista_espera(entrada),
+        }
+
+    def promover_lista_espera(self, entrada_id: int) -> dict:
+        entrada = self.db.query(ListaEspera).filter(ListaEspera.id == entrada_id).first()
+        if not entrada:
+            raise NotFoundException("Entrada de lista de espera no encontrada")
+
+        if entrada.estado != "ESPERANDO":
+            raise ValidationException("Esta entrada ya fue procesada")
+
+        # Verificar que el slot sigue ocupado.
+        reservas_conflictivas = self.db.query(Reserva).filter(
+            Reserva.cancha_id == entrada.cancha_id,
+            Reserva.fecha == entrada.fecha,
+            Reserva.estado_pago != EstadoPago.LIBRE,
+            or_(
+                and_(Reserva.hora_inicio < entrada.hora_fin, Reserva.hora_fin > entrada.hora_inicio)
+            )
+        ).first()
+
+        if reservas_conflictivas:
+            raise ValidationException("El horario sigue ocupado, no se puede promover")
+
+        # Crear reserva para el cliente de la lista de espera.
+        cancha = self.db.query(Cancha).filter(Cancha.id == entrada.cancha_id).first()
+        if not cancha:
+            raise NotFoundException("Cancha no encontrada")
+
+        # Buscar o crear usuario.
+        from app.domains.auth.models import Auth
+        from app.core.security import hash_password
+
+        usuario = None
+        if entrada.cliente_email:
+            email_norm = entrada.cliente_email.lower().strip()
+            auth = self.db.query(Auth).filter(Auth.email == email_norm).first()
+            if auth:
+                usuario = self.db.query(User).filter(User.auth_id == auth.id).first()
+            if not usuario:
+                auth = Auth(email=email_norm, password_hash=hash_password("LISTA-ESPERA-2026"))
+                self.db.add(auth)
+                self.db.flush()
+                usuario = User(
+                    auth_id=auth.id,
+                    nombre=entrada.cliente_nombre,
+                    telefono=entrada.cliente_telefono,
+                    is_admin=False,
+                )
+                self.db.add(usuario)
+                self.db.commit()
+                self.db.refresh(usuario)
+
+        if not usuario:
+            raise ValidationException("No se pudo resolver el usuario para la reserva")
+
+        # Crear la reserva.
+        inicio_dt = datetime.combine(entrada.fecha, entrada.hora_inicio)
+        fin_dt = datetime.combine(entrada.fecha, entrada.hora_fin)
+        duracion_horas = (fin_dt - inicio_dt).seconds / 3600
+        precio_total = float(cancha.precio_hora) * duracion_horas
+
+        reserva = Reserva(
+            usuario_id=usuario.id,
+            cancha_id=entrada.cancha_id,
+            fecha=entrada.fecha,
+            hora_inicio=entrada.hora_inicio,
+            hora_fin=entrada.hora_fin,
+            jugadores=1,
+            estado_pago=EstadoPago.SIN_PAGAR,
+            precio_total=precio_total,
+            observaciones=f"Creada desde lista de espera (posición #{entrada.posicion})",
+        )
+        self.db.add(reserva)
+
+        entrada.estado = "PROMOVIDA"
+        entrada.promoted_at = datetime.utcnow()
+        self.db.commit()
+        self.db.refresh(reserva)
+
+        return {
+            "status": 200,
+            "message": f"Reserva creada para {entrada.cliente_nombre} desde lista de espera",
+            "reserva_id": reserva.id,
+        }
+
+    def _format_lista_espera(self, entrada: ListaEspera) -> dict:
+        return {
+            "id": entrada.id,
+            "cancha_id": entrada.cancha_id,
+            "cliente_nombre": entrada.cliente_nombre,
+            "cliente_email": entrada.cliente_email,
+            "cliente_telefono": entrada.cliente_telefono,
+            "fecha": entrada.fecha,
+            "hora_inicio": entrada.hora_inicio.strftime("%H:%M"),
+            "hora_fin": entrada.hora_fin.strftime("%H:%M"),
+            "posicion": entrada.posicion,
+            "estado": entrada.estado,
+            "created_at": entrada.created_at.isoformat() if entrada.created_at else None,
         }

@@ -62,3 +62,24 @@ class ReglaPrecio(Base):
     es_socio = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ListaEspera(Base):
+    __tablename__ = "lista_espera"
+
+    id = Column(Integer, primary_key=True, index=True)
+    cancha_id = Column(Integer, ForeignKey("canchas.id"), nullable=False)
+    usuario_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    cliente_nombre = Column(String(200), nullable=False)
+    cliente_email = Column(String(200), nullable=True)
+    cliente_telefono = Column(String(50), nullable=True)
+    fecha = Column(Date, nullable=False)
+    hora_inicio = Column(Time, nullable=False)
+    hora_fin = Column(Time, nullable=False)
+    posicion = Column(Integer, nullable=False, default=1)
+    estado = Column(String(20), nullable=False, default="ESPERANDO")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    promoted_at = Column(DateTime, nullable=True)
+
+    cancha = relationship("Cancha")
+    usuario = relationship("User")

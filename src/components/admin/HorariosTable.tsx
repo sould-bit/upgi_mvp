@@ -3,6 +3,7 @@ import ReservaCell from './ReservaCell';
 
 interface HorariosTableProps {
   rows: ScheduleRow[];
+  selectedDate?: string;
   isUpdatingPayment: (reservationId?: number) => boolean;
   isCancellingReservation: (reservationId?: number) => boolean;
   onStatusChange: (reservationId: number, status: EditablePaymentStatus) => Promise<void>;
@@ -13,6 +14,7 @@ interface HorariosTableProps {
 
 function HorariosTable({
   rows,
+  selectedDate,
   isUpdatingPayment,
   isCancellingReservation,
   onStatusChange,
@@ -54,6 +56,7 @@ function HorariosTable({
                       onOpenModal={onOpenModal}
                       onQuickReserve={onQuickReserve}
                       onStatusChange={onStatusChange}
+                      selectedDate={selectedDate}
                       slot={slot}
                     />
                   </td>

@@ -21,6 +21,9 @@ import type {
   HorariosPicoResponse,
   InventarioSummaryResponse,
   InventarioAlquiladoResponse,
+  ListaEsperaCreateResponse,
+  ListaEsperaListResponse,
+  ListaEsperaPromoteResponse,
   LoginCredentials,
   OcupacionResponse,
   PrecioPreviewResponse,
@@ -285,6 +288,38 @@ export function previewPrecio(params: {
   return apiRequest<PrecioPreviewResponse>('/reservas/admin/preview-precio', {
     method: 'POST',
     body: JSON.stringify(params)
+  });
+}
+
+export function fetchListaEspera(params?: {
+  fecha?: string;
+  cancha_id?: number;
+}): Promise<ListaEsperaListResponse> {
+  const searchParams = new URLSearchParams();
+  if (params?.fecha) searchParams.set('fecha', params.fecha);
+  if (params?.cancha_id) searchParams.set('cancha_id', String(params.cancha_id));
+  const qs = searchParams.toString();
+  return apiRequest<ListaEsperaListResponse>(`/reservas/admin/lista-espera${qs ? `?${qs}` : ''}`);
+}
+
+export function unirListaEspera(payload: {
+  cancha_id: number;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  cliente_nombre: string;
+  cliente_email?: string;
+  cliente_telefono?: string;
+}): Promise<ListaEsperaCreateResponse> {
+  return apiRequest<ListaEsperaCreateResponse>('/reservas/admin/lista-espera', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function promoverListaEspera(entradaId: number): Promise<ListaEsperaPromoteResponse> {
+  return apiRequest<ListaEsperaPromoteResponse>(`/reservas/admin/lista-espera/${entradaId}/promover`, {
+    method: 'POST'
   });
 }
 

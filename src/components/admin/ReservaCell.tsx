@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import type { CourtSlot, EditablePaymentStatus } from '../../types';
+import { unirListaEspera } from '../../lib/api';
 import PaymentStatusBadge from './PaymentStatusBadge';
 
 interface ReservaCellProps {
   slot: CourtSlot;
   isUpdatingPayment?: boolean;
   isCancelling?: boolean;
+  selectedDate?: string;
   onStatusChange?: (reservationId: number, status: EditablePaymentStatus) => Promise<void>;
   onCancel?: (reservationId: number) => Promise<void>;
   onOpenModal?: (reservationId: number) => void;
@@ -15,14 +18,41 @@ function ReservaCell({
   slot,
   isUpdatingPayment = false,
   isCancelling = false,
+  selectedDate,
   onOpenModal,
   onQuickReserve
 }: ReservaCellProps) {
   const reservationId = slot.reservationId;
   const isRangeContinuation = slot.isRangeStart === false;
+  const [isJoiningWaitlist, setIsJoiningWaitlist] = useState(false);
 
-  // Celda libre — botón rápido de reservar.
+  // Celda libre — botón rápido de reservar y lista de espera.
   if (slot.status === 'Libre') {
+    const handleJoinWaitlist = async () => {
+      const nombre = window.prompt('Nombre del cliente para lista de espera:');
+      if (!nombre) return;
+      setIsJoiningWaitlist(true);
+      try {
+        const endTime = (() => {
+          const times = ['08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+          const idx = times.indexOf(slot.time ?? '');
+          return idx >= 0 && idx < times.length - 1 ? times[idx + 1] : slot.time;
+        })();
+        await unirListaEspera({
+          cancha_id: 0, // Will be resolved by court name mapping if needed.
+          fecha: selectedDate ?? new Date().toISOString().slice(0, 10),
+          hora_inicio: slot.time ?? '',
+          hora_fin: endTime ?? '',
+          cliente_nombre: nombre,
+        });
+        window.alert(`${nombre} agregado a lista de espera para ${slot.time}`);
+      } catch (error) {
+        window.alert(error instanceof Error ? error.message : 'Error al unir a lista de espera');
+      } finally {
+        setIsJoiningWaitlist(false);
+      }
+    };
+
     return (
       <div className="reservation-cell reservation-cell--free">
         <button
@@ -39,6 +69,15 @@ function ReservaCell({
             <path d="M12 5v14M5 12h14" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
           </svg>
           Reservar
+        </button>
+        <button
+          className="quick-reserve-btn quick-reserve-btn--waitlist"
+          onClick={() => void handleJoinWaitlist()}
+          disabled={isJoiningWaitlist}
+          title="Agregar a lista de espera"
+          type="button"
+        >
+          {isJoiningWaitlist ? '...' : 'Lista de espera'}
         </button>
       </div>
     );

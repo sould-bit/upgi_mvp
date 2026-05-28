@@ -158,6 +158,7 @@ function HorariosCanchasSection({
               onQuickReserve={onQuickReserve ?? (() => {})}
               onStatusChange={onStatusChange}
               rows={filteredRows}
+              selectedDate={selectedDate}
             />
         ) : (
           <div className="alert alert-light border mb-0">No hay reservas para los filtros actuales.</div>

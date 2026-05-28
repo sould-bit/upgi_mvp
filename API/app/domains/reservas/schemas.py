@@ -181,3 +181,47 @@ class PrecioPreviewResponse(BaseModel):
     descuento: float
     precio_final: float
     desglose: list[dict]
+
+
+class ListaEsperaCreate(BaseModel):
+    cancha_id: int
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+    cliente_nombre: str
+    cliente_email: str | None = None
+    cliente_telefono: str | None = None
+
+
+class ListaEsperaResponse(BaseModel):
+    id: int
+    cancha_id: int
+    cliente_nombre: str
+    cliente_email: str | None = None
+    cliente_telefono: str | None = None
+    fecha: date
+    hora_inicio: time
+    hora_fin: time
+    posicion: int
+    estado: str
+    created_at: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ListaEsperaListResponse(BaseModel):
+    status: int = 200
+    entradas: list[ListaEsperaResponse]
+
+
+class ListaEsperaCreateResponse(BaseModel):
+    status: int = 201
+    message: str
+    entrada: ListaEsperaResponse
+
+
+class ListaEsperaPromoteResponse(BaseModel):
+    status: int = 200
+    message: str
+    reserva_id: int | None = None

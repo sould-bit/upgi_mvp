@@ -2,7 +2,7 @@ from datetime import date
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.database import get_db
+from app.database import get_db, SessionLocal
 from app.domains.auth.utils import get_current_user, get_current_admin
 from app.domains.users.models import User
 from app.domains.reservas.service import ReservaService
@@ -14,6 +14,7 @@ from app.domains.reservas.schemas import (
     ComunicacionCreate, ComunicacionCreateResponse, ComunicacionListResponse,
     ReglaPrecioCreate, ReglaPrecioCreateResponse, ReglaPrecioListResponse,
     PrecioPreviewRequest, PrecioPreviewResponse,
+    ListaEsperaCreate, ListaEsperaCreateResponse, ListaEsperaListResponse, ListaEsperaPromoteResponse,
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
@@ -146,7 +147,6 @@ def crear_comunicacion(
 
 @router.get("/admin/reglas-precio", response_model=ReglaPrecioListResponse)
 def listar_reglas_precio(current_user: User = Depends(get_current_admin)):
-    from app.database import SessionLocal
     db = SessionLocal()
     try:
         service = ReservaService(db)
@@ -160,7 +160,6 @@ def crear_regla_precio(
     data: ReglaPrecioCreate,
     current_user: User = Depends(get_current_admin),
 ):
-    from app.database import SessionLocal
     db = SessionLocal()
     try:
         service = ReservaService(db)
@@ -174,10 +173,49 @@ def preview_precio(
     data: PrecioPreviewRequest,
     current_user: User = Depends(get_current_admin),
 ):
-    from app.database import SessionLocal
     db = SessionLocal()
     try:
         service = ReservaService(db)
         return service.preview_precio(data)
+    finally:
+        db.close()
+
+
+@router.get("/admin/lista-espera", response_model=ListaEsperaListResponse)
+def listar_lista_espera(
+    fecha: date | None = Query(None),
+    cancha_id: int | None = Query(None),
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.listar_lista_espera(fecha, cancha_id)
+    finally:
+        db.close()
+
+
+@router.post("/admin/lista-espera", response_model=ListaEsperaCreateResponse, status_code=201)
+def unir_lista_espera(
+    data: ListaEsperaCreate,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.unir_lista_espera(data)
+    finally:
+        db.close()
+
+
+@router.post("/admin/lista-espera/{entrada_id}/promover", response_model=ListaEsperaPromoteResponse)
+def promover_lista_espera(
+    entrada_id: int,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.promover_lista_espera(entrada_id)
     finally:
         db.close()
