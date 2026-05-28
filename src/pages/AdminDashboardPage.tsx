@@ -207,7 +207,12 @@ function buildScheduleRows(reservations: AdminReservation[], courts: Court[], se
     return timeKeys.map((time) => ({
       time,
       slots: orderedCourtNames.map(
-        (name): ScheduleRow['slots'][number] => ({ court: name, status: 'Libre' as PaymentStatus, time })
+        (name): ScheduleRow['slots'][number] => ({
+          court: name,
+          courtId: courts.find((c) => c.nombre === name)?.id,
+          status: 'Libre' as PaymentStatus,
+          time
+        })
       )
     }));
   }
@@ -239,7 +244,12 @@ function buildScheduleRows(reservations: AdminReservation[], courts: Court[], se
         groupedRows.get(timeKey) ?? {
           time: timeKey,
           slots: orderedCourtNames.map(
-            (name): ScheduleRow['slots'][number] => ({ court: name, status: 'Libre' as PaymentStatus, time: timeKey })
+            (name): ScheduleRow['slots'][number] => ({
+              court: name,
+              courtId: courts.find((c) => c.nombre === name)?.id,
+              status: 'Libre' as PaymentStatus,
+              time: timeKey
+            })
           )
         };
 

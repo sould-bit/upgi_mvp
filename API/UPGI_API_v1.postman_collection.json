@@ -24,7 +24,7 @@
     },
     {
       "key": "admin_password",
-      "value": "Password*123"
+      "value": "AdminUPGI2026!"
     },
     {
       "key": "reserva_id",
@@ -100,8 +100,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/register",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "register"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
             }
           },
           "response": []
@@ -160,8 +165,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "response": []
@@ -208,8 +218,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/auth/login",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "login"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
             }
           },
           "response": []
@@ -251,8 +266,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
             }
           },
           "response": []
@@ -287,8 +307,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/auth/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["auth", "logout"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
             }
           },
           "response": []
@@ -323,8 +348,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/canchas",
-              "host": ["{{baseUrl}}"],
-              "path": ["canchas"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "canchas"
+              ]
             }
           },
           "response": []
@@ -373,8 +402,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/canchas",
-              "host": ["{{baseUrl}}"],
-              "path": ["canchas"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "canchas"
+              ]
             }
           },
           "response": []
@@ -399,8 +432,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/canchas/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["canchas", "1"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "canchas",
+                "1"
+              ]
             }
           },
           "response": []
@@ -430,8 +468,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/canchas/1/disponibilidad?fecha=2026-04-15&hora_inicio=14:00:00&hora_fin=16:00:00",
-              "host": ["{{baseUrl}}"],
-              "path": ["canchas", "1", "disponibilidad"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "canchas",
+                "1",
+                "disponibilidad"
+              ],
               "query": [
                 {
                   "key": "fecha",
@@ -489,8 +533,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/canchas/1",
-              "host": ["{{baseUrl}}"],
-              "path": ["canchas", "1"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "canchas",
+                "1"
+              ]
             }
           },
           "response": []
@@ -578,8 +627,12 @@
             },
             "url": {
               "raw": "{{baseUrl}}/reservas",
-              "host": ["{{baseUrl}}"],
-              "path": ["reservas"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
             }
           },
           "response": []
@@ -619,8 +672,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/reservas",
-              "host": ["{{baseUrl}}"],
-              "path": ["reservas"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
             }
           },
           "response": []
@@ -655,8 +712,12 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/reservas?fecha_desde=2026-04-01&fecha_hasta=2026-04-30&estado_pago=Sin%20pagar",
-              "host": ["{{baseUrl}}"],
-              "path": ["reservas"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ],
               "query": [
                 {
                   "key": "fecha_desde",
@@ -705,8 +766,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/reservas/{{reserva_id}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["reservas", "{{reserva_id}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reserva_id}}"
+              ]
             }
           },
           "response": []
@@ -741,8 +807,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/reservas/{{reserva_id}}",
-              "host": ["{{baseUrl}}"],
-              "path": ["reservas", "{{reserva_id}}"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{reserva_id}}"
+              ]
             }
           },
           "response": []
@@ -787,8 +858,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/dashboard",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "dashboard"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "dashboard"
+              ]
             }
           },
           "response": []
@@ -828,8 +904,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/reportes/reservas-semana?fecha_inicio=2026-04-01&fecha_fin=2026-04-07",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "reportes", "reservas-semana"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reportes",
+                "reservas-semana"
+              ],
               "query": [
                 {
                   "key": "fecha_inicio",
@@ -879,8 +961,14 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/reportes/ingresos?fecha_desde=2026-04-01&fecha_hasta=2026-04-30",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "reportes", "ingresos"],
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reportes",
+                "ingresos"
+              ],
               "query": [
                 {
                   "key": "fecha_desde",
@@ -925,8 +1013,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/admin/reservas",
-              "host": ["{{baseUrl}}"],
-              "path": ["admin", "reservas"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "admin",
+                "reservas"
+              ]
             }
           },
           "response": []
@@ -966,8 +1059,13 @@
             "header": [],
             "url": {
               "raw": "{{baseUrl}}/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
             }
           },
           "response": []
@@ -1011,8 +1109,13 @@
             },
             "url": {
               "raw": "{{baseUrl}}/users/me",
-              "host": ["{{baseUrl}}"],
-              "path": ["users", "me"]
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
             }
           },
           "response": []
@@ -1047,8 +1150,12 @@
             "header": [],
             "url": {
               "raw": "http://localhost:8000/health",
-              "host": ["localhost:8000"],
-              "path": ["health"]
+              "host": [
+                "localhost:8000"
+              ],
+              "path": [
+                "health"
+              ]
             }
           },
           "response": []
@@ -1073,7 +1180,9 @@
             "header": [],
             "url": {
               "raw": "http://localhost:8000/",
-              "host": ["localhost:8000"],
+              "host": [
+                "localhost:8000"
+              ],
               "path": []
             }
           },

@@ -252,11 +252,11 @@ export interface AdminProfile {
 export interface CourtSlot {
   reservationId?: number;
   court: string;
+  courtId?: number;
   player?: string;
   status: PaymentStatus;
   timeRangeLabel?: string;
   isRangeStart?: boolean;
-  // Tiempo del bloque padre (para acciones rápidas).
   time?: string;
 }
 

@@ -768,6 +768,9 @@ class ReservaService:
             dias_semana_objetivo = {int(d) for d in serie.dias_semana.split(",") if d.strip()}
 
         while fecha_actual <= fecha_limite:
+            if len(fechas) > 365:
+                break
+
             if serie.frecuencia == "DIARIA":
                 fechas.append(fecha_actual)
                 fecha_actual += timedelta(days=serie.intervalo)
@@ -775,8 +778,6 @@ class ReservaService:
                 if not dias_semana_objetivo or fecha_actual.weekday() in dias_semana_objetivo:
                     fechas.append(fecha_actual)
                 fecha_actual += timedelta(days=1)
-                if len(fechas) > 0 and (fecha_actual - fechas[0]).days > 7 * serie.intervalo:
-                    break
             elif serie.frecuencia == "MENSUAL":
                 fechas.append(fecha_actual)
                 mes_siguiente = fecha_actual.month + serie.intervalo
@@ -785,9 +786,6 @@ class ReservaService:
                 dia = min(fecha_actual.day, 28)
                 fecha_actual = date(anio_siguiente, mes_real, dia)
             else:
-                break
-
-            if len(fechas) > 52:
                 break
 
         return fechas

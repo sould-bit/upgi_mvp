@@ -86,14 +86,14 @@ El sistema UPGI fue sometido a pruebas manuales de tipo **caja negra** utilizand
 | `token_user` | (dinámico) | Token JWT de usuario regular |
 | `token_admin` | (dinámico) | Token JWT de administrador |
 | `admin_email` | `juan@email.com` | Email de usuario admin |
-| `admin_password` | `Password*123` | Contraseña de admin |
+| `admin_password` | `AdminUPGI2026!` | Contraseña de admin |
 | `reserva_id` | (dinámico) | ID de reserva creada en pruebas |
 
 ### 3.3 Datos de Prueba
 
 | Tipo | Credenciales |
 |------|--------------|
-| **Admin** | `juan@email.com` / `Password*123` |
+| **Admin** | `juan@email.com` / `AdminUPGI2026!` |
 | **Usuario Regular** | Generado dinámicamente con timestamp |
 
 ---
@@ -391,7 +391,7 @@ El sistema UPGI fue sometido a pruebas manuales de tipo **caja negra** utilizand
 # Variables requeridas en Postman:
 # - baseUrl: http://localhost:8000/api/v1
 # - admin_email: juan@email.com
-# - admin_password: Password*123
+# - admin_password: AdminUPGI2026!
 
 # Orden de ejecución recomendado:
 # 1. System > Health Check

@@ -39,7 +39,7 @@ function ReservaCell({
           return idx >= 0 && idx < times.length - 1 ? times[idx + 1] : slot.time;
         })();
         await unirListaEspera({
-          cancha_id: 0, // Will be resolved by court name mapping if needed.
+          cancha_id: slot.courtId ?? 0,
           fecha: selectedDate ?? new Date().toISOString().slice(0, 10),
           hora_inicio: slot.time ?? '',
           hora_fin: endTime ?? '',

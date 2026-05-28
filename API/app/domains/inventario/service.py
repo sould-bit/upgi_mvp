@@ -57,8 +57,11 @@ class InventarioService:
             "equipos": [self._to_response(equipo) for equipo in equipos],
         }
 
-    def get_by_id(self, equipo_id: int) -> Equipo:
-        equipo = self.db.query(Equipo).filter(Equipo.id == equipo_id).first()
+    def get_by_id(self, equipo_id: int, only_active: bool = False) -> Equipo:
+        query = self.db.query(Equipo).filter(Equipo.id == equipo_id)
+        if only_active:
+            query = query.filter(Equipo.is_active == True)
+        equipo = query.first()
         if not equipo:
             raise NotFoundException("Equipo no encontrado")
         return equipo
@@ -72,6 +75,9 @@ class InventarioService:
 
     def update(self, equipo_id: int, data: EquipoUpdate) -> dict:
         equipo = self.get_by_id(equipo_id)
+
+        if not equipo.is_active:
+            raise ValidationException("No se puede editar un equipo dado de baja")
 
         if data.nombre is not None:
             equipo.nombre = data.nombre
