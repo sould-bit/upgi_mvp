@@ -1,7 +1,7 @@
 from datetime import datetime, date, time, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, extract
-from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva, ReglaPrecio, ListaEspera
+from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva, ReglaPrecio, ListaEspera, SerieReserva
 from app.domains.canchas.models import Cancha
 from app.domains.inventario.models import AlquilerEquipo, Equipo
 from app.domains.users.models import User
@@ -641,4 +641,172 @@ class ReservaService:
             "posicion": entrada.posicion,
             "estado": entrada.estado,
             "created_at": entrada.created_at.isoformat() if entrada.created_at else None,
+        }
+
+    def listar_series(self) -> dict:
+        series = (
+            self.db.query(SerieReserva)
+            .filter(SerieReserva.is_active == True)
+            .order_by(SerieReserva.id.desc())
+            .all()
+        )
+        return {
+            "status": 200,
+            "series": [self._format_serie(s) for s in series],
+        }
+
+    def crear_serie(self, data, usuario_id: int) -> dict:
+        cancha = self.db.query(Cancha).filter(Cancha.id == data.cancha_id).first()
+        if not cancha:
+            raise NotFoundException("Cancha no encontrada")
+
+        if not cancha.is_active:
+            raise ValidationException("La cancha no está disponible")
+
+        if data.hora_fin <= data.hora_inicio:
+            raise ValidationException("La hora de fin debe ser posterior a la hora de inicio")
+
+        if data.fecha_fin and data.fecha_fin < data.fecha_inicio:
+            raise ValidationException("La fecha de fin debe ser posterior a la fecha de inicio")
+
+        serie = SerieReserva(
+            usuario_id=usuario_id,
+            cancha_id=data.cancha_id,
+            fecha_inicio=data.fecha_inicio,
+            fecha_fin=data.fecha_fin,
+            hora_inicio=data.hora_inicio,
+            hora_fin=data.hora_fin,
+            jugadores=data.jugadores,
+            frecuencia=data.frecuencia,
+            intervalo=data.intervalo,
+            dias_semana=data.dias_semana,
+            observaciones=data.observaciones,
+        )
+        self.db.add(serie)
+        self.db.flush()
+
+        # Generar instancias.
+        fechas = self._generar_fechas_serie(serie)
+        instancias_creadas = 0
+
+        for fecha in fechas:
+            # Verificar conflicto.
+            conflicto = self.db.query(Reserva).filter(
+                Reserva.cancha_id == data.cancha_id,
+                Reserva.fecha == fecha,
+                Reserva.estado_pago != EstadoPago.LIBRE,
+                or_(
+                    and_(Reserva.hora_inicio < data.hora_fin, Reserva.hora_fin > data.hora_inicio)
+                ),
+            ).first()
+
+            if not conflicto:
+                inicio_dt = datetime.combine(fecha, data.hora_inicio)
+                fin_dt = datetime.combine(fecha, data.hora_fin)
+                duracion_horas = (fin_dt - inicio_dt).seconds / 3600
+                precio_total = float(cancha.precio_hora) * duracion_horas
+
+                reserva = Reserva(
+                    usuario_id=usuario_id,
+                    cancha_id=data.cancha_id,
+                    serie_id=serie.id,
+                    fecha=fecha,
+                    hora_inicio=data.hora_inicio,
+                    hora_fin=data.hora_fin,
+                    jugadores=data.jugadores,
+                    estado_pago=EstadoPago.SIN_PAGAR,
+                    precio_total=precio_total,
+                    observaciones=f"Serie #{serie.id} - {data.frecuencia}",
+                )
+                self.db.add(reserva)
+                instancias_creadas += 1
+
+        self.db.commit()
+        self.db.refresh(serie)
+
+        return {
+            "status": 201,
+            "message": f"Serie creada con {instancias_creadas} instancias",
+            "serie": self._format_serie(serie),
+            "instancias_creadas": instancias_creadas,
+        }
+
+    def cancelar_serie(self, serie_id: int) -> dict:
+        serie = self.db.query(SerieReserva).filter(SerieReserva.id == serie_id).first()
+        if not serie:
+            raise NotFoundException("Serie no encontrada")
+
+        # Cancelar todas las reservas futuras de la serie.
+        reservas_serie = self.db.query(Reserva).filter(
+            Reserva.serie_id == serie_id,
+            Reserva.fecha >= date.today(),
+            Reserva.estado_pago != EstadoPago.LIBRE,
+        ).all()
+
+        count = 0
+        for reserva in reservas_serie:
+            reserva.estado_pago = EstadoPago.LIBRE
+            reserva.observaciones = (reserva.observaciones or "") + f"\n[CANCELADA por cancelación de serie #{serie_id}]"
+            count += 1
+
+        serie.is_active = False
+        self.db.commit()
+
+        return {
+            "status": 200,
+            "message": f"Serie cancelada. {count} reservas canceladas.",
+            "reservas_canceladas": count,
+        }
+
+    def _generar_fechas_serie(self, serie: SerieReserva) -> list[date]:
+        fechas = []
+        fecha_actual = serie.fecha_inicio
+        fecha_limite = serie.fecha_fin or (serie.fecha_inicio + timedelta(days=365))
+        dias_semana_objetivo = set()
+
+        if serie.dias_semana:
+            dias_semana_objetivo = {int(d) for d in serie.dias_semana.split(",") if d.strip()}
+
+        while fecha_actual <= fecha_limite:
+            if serie.frecuencia == "DIARIA":
+                fechas.append(fecha_actual)
+                fecha_actual += timedelta(days=serie.intervalo)
+            elif serie.frecuencia == "SEMANAL":
+                if not dias_semana_objetivo or fecha_actual.weekday() in dias_semana_objetivo:
+                    fechas.append(fecha_actual)
+                fecha_actual += timedelta(days=1)
+                if len(fechas) > 0 and (fecha_actual - fechas[0]).days > 7 * serie.intervalo:
+                    break
+            elif serie.frecuencia == "MENSUAL":
+                fechas.append(fecha_actual)
+                mes_siguiente = fecha_actual.month + serie.intervalo
+                anio_siguiente = fecha_actual.year + (mes_siguiente - 1) // 12
+                mes_real = (mes_siguiente - 1) % 12 + 1
+                dia = min(fecha_actual.day, 28)
+                fecha_actual = date(anio_siguiente, mes_real, dia)
+            else:
+                break
+
+            if len(fechas) > 52:
+                break
+
+        return fechas
+
+    def _format_serie(self, serie: SerieReserva) -> dict:
+        count = self.db.query(Reserva).filter(Reserva.serie_id == serie.id).count()
+        return {
+            "id": serie.id,
+            "cancha_id": serie.cancha_id,
+            "fecha_inicio": serie.fecha_inicio,
+            "fecha_fin": serie.fecha_fin,
+            "hora_inicio": serie.hora_inicio.strftime("%H:%M"),
+            "hora_fin": serie.hora_fin.strftime("%H:%M"),
+            "jugadores": serie.jugadores,
+            "frecuencia": serie.frecuencia,
+            "intervalo": serie.intervalo,
+            "dias_semana": serie.dias_semana,
+            "observaciones": serie.observaciones,
+            "is_active": serie.is_active,
+            "total_instancias": count,
+            "created_at": serie.created_at.isoformat() if serie.created_at else None,
         }

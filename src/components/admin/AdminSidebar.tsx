@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 const adminNavItems = [
   { label: 'Dashboard', to: '/admin/dashboard' },
   { label: 'Reservas', to: '/admin/reservas' },
+  { label: 'Series', to: '/admin/series' },
   { label: 'Canchas', to: '/admin/canchas' },
   { label: 'Inventario', to: '/admin/inventario' },
   { label: 'Reportes Avanzados', to: '/admin/reportes' },

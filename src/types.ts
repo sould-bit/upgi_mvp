@@ -352,8 +352,8 @@ export interface Equipo {
   maintenance_notes?: string | null;
 }
 
-export type EquipoCreatePayload = Omit<Equipo, 'id' | 'is_active'>;
-export type EquipoUpdatePayload = Partial<Omit<Equipo, 'id' | 'is_active'>>;
+export type EquipoCreatePayload = Omit<Equipo, 'id' | 'is_active' | 'maintenance_status' | 'maintenance_notes'>;
+export type EquipoUpdatePayload = Partial<Omit<Equipo, 'id' | 'is_active' | 'maintenance_status' | 'maintenance_notes'>>;
 
 export interface EquipoListResponse {
   status: number;
@@ -527,4 +527,52 @@ export interface ListaEsperaPromoteResponse {
   status: number;
   message: string;
   reserva_id?: number | null;
+}
+
+export interface SerieReserva {
+  id: number;
+  cancha_id: number;
+  fecha_inicio: string;
+  fecha_fin?: string | null;
+  hora_inicio: string;
+  hora_fin: string;
+  jugadores: number;
+  frecuencia: 'DIARIA' | 'SEMANAL' | 'MENSUAL';
+  intervalo: number;
+  dias_semana?: string | null;
+  observaciones?: string | null;
+  is_active: boolean;
+  total_instancias: number;
+  created_at?: string | null;
+}
+
+export interface SerieReservaCreatePayload {
+  cancha_id: number;
+  fecha_inicio: string;
+  fecha_fin?: string | null;
+  hora_inicio: string;
+  hora_fin: string;
+  jugadores: number;
+  frecuencia: string;
+  intervalo: number;
+  dias_semana?: string | null;
+  observaciones?: string | null;
+}
+
+export interface SerieReservaListResponse {
+  status: number;
+  series: SerieReserva[];
+}
+
+export interface SerieReservaCreateResponse {
+  status: number;
+  message: string;
+  serie: SerieReserva;
+  instancias_creadas: number;
+}
+
+export interface SerieReservaCancelResponse {
+  status: number;
+  message: string;
+  reservas_canceladas: number;
 }

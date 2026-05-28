@@ -39,6 +39,10 @@ import type {
   ReservationCancelResponse,
   ReservationPaymentUpdatePayload,
   ReservationPaymentUpdateResponse,
+  SerieReservaCancelResponse,
+  SerieReservaCreatePayload,
+  SerieReservaCreateResponse,
+  SerieReservaListResponse,
   WeeklyReservationsResponse
 } from '../types';
 import { getStoredSession } from './session';
@@ -320,6 +324,23 @@ export function unirListaEspera(payload: {
 export function promoverListaEspera(entradaId: number): Promise<ListaEsperaPromoteResponse> {
   return apiRequest<ListaEsperaPromoteResponse>(`/reservas/admin/lista-espera/${entradaId}/promover`, {
     method: 'POST'
+  });
+}
+
+export function fetchSeries(): Promise<SerieReservaListResponse> {
+  return apiRequest<SerieReservaListResponse>('/reservas/admin/series');
+}
+
+export function createSerie(payload: SerieReservaCreatePayload): Promise<SerieReservaCreateResponse> {
+  return apiRequest<SerieReservaCreateResponse>('/reservas/admin/series', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function cancelarSerie(serieId: number): Promise<SerieReservaCancelResponse> {
+  return apiRequest<SerieReservaCancelResponse>(`/reservas/admin/series/${serieId}`, {
+    method: 'DELETE'
   });
 }
 

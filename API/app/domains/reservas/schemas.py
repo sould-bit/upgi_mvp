@@ -225,3 +225,54 @@ class ListaEsperaPromoteResponse(BaseModel):
     status: int = 200
     message: str
     reserva_id: int | None = None
+
+
+class SerieReservaCreate(BaseModel):
+    cancha_id: int
+    fecha_inicio: date
+    fecha_fin: date | None = None
+    hora_inicio: time
+    hora_fin: time
+    jugadores: int
+    frecuencia: str
+    intervalo: int = 1
+    dias_semana: str | None = None
+    observaciones: str | None = None
+
+
+class SerieReservaResponse(BaseModel):
+    id: int
+    cancha_id: int
+    fecha_inicio: date
+    fecha_fin: date | None = None
+    hora_inicio: time
+    hora_fin: time
+    jugadores: int
+    frecuencia: str
+    intervalo: int
+    dias_semana: str | None = None
+    observaciones: str | None = None
+    is_active: bool
+    total_instancias: int = 0
+    created_at: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class SerieReservaListResponse(BaseModel):
+    status: int = 200
+    series: list[SerieReservaResponse]
+
+
+class SerieReservaCreateResponse(BaseModel):
+    status: int = 201
+    message: str
+    serie: SerieReservaResponse
+    instancias_creadas: int = 0
+
+
+class SerieReservaCancelResponse(BaseModel):
+    status: int = 200
+    message: str
+    reservas_canceladas: int = 0

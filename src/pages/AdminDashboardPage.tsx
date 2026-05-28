@@ -25,6 +25,7 @@ import ReportesAvanzadosSection from '../components/admin/reportes/ReportesAvanz
 import ReservationFiltersSection, { type ReservationFilters } from '../components/admin/ReservationFiltersSection';
 import ReservasPorSemanaSection from '../components/admin/ReservasPorSemanaSection';
 import ReservaFormSection from '../components/reservas/ReservaFormSection';
+import SerieReservasPanel from '../components/admin/SerieReservasPanel';
 import StatsSection from '../components/admin/StatsSection';
 import type {
   AdminDashboardResponse,
@@ -1029,6 +1030,18 @@ function AdminDashboardPage() {
             title="Configuración"
           />
           <ConfiguracionSection />
+        </>
+      );
+    }
+
+    if (section === 'series') {
+      return (
+        <>
+          <DashboardWelcomeAlert
+            description="Gestioná las reservas recurrentes: ligas semanales, clases periódicas y más."
+            title="Series de Reservas"
+          />
+          <SerieReservasPanel />
         </>
       );
     }

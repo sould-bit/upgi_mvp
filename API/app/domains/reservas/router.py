@@ -15,6 +15,7 @@ from app.domains.reservas.schemas import (
     ReglaPrecioCreate, ReglaPrecioCreateResponse, ReglaPrecioListResponse,
     PrecioPreviewRequest, PrecioPreviewResponse,
     ListaEsperaCreate, ListaEsperaCreateResponse, ListaEsperaListResponse, ListaEsperaPromoteResponse,
+    SerieReservaCreate, SerieReservaCreateResponse, SerieReservaListResponse, SerieReservaCancelResponse,
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
@@ -217,5 +218,41 @@ def promover_lista_espera(
     try:
         service = ReservaService(db)
         return service.promover_lista_espera(entrada_id)
+    finally:
+        db.close()
+
+
+@router.get("/admin/series", response_model=SerieReservaListResponse)
+def listar_series(current_user: User = Depends(get_current_admin)):
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.listar_series()
+    finally:
+        db.close()
+
+
+@router.post("/admin/series", response_model=SerieReservaCreateResponse, status_code=201)
+def crear_serie(
+    data: SerieReservaCreate,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.crear_serie(data, current_user.id)
+    finally:
+        db.close()
+
+
+@router.delete("/admin/series/{serie_id}", response_model=SerieReservaCancelResponse)
+def cancelar_serie(
+    serie_id: int,
+    current_user: User = Depends(get_current_admin),
+):
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.cancelar_serie(serie_id)
     finally:
         db.close()

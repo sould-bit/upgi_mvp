@@ -18,6 +18,7 @@ class Reserva(Base):
     id = Column(Integer, primary_key=True, index=True)
     usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     cancha_id = Column(Integer, ForeignKey("canchas.id"), nullable=False)
+    serie_id = Column(Integer, ForeignKey("series_reserva.id"), nullable=True)
     fecha = Column(Date, nullable=False)
     hora_inicio = Column(Time, nullable=False)
     hora_fin = Column(Time, nullable=False)
@@ -83,3 +84,26 @@ class ListaEspera(Base):
 
     cancha = relationship("Cancha")
     usuario = relationship("User")
+
+
+class SerieReserva(Base):
+    __tablename__ = "series_reserva"
+
+    id = Column(Integer, primary_key=True, index=True)
+    usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    cancha_id = Column(Integer, ForeignKey("canchas.id"), nullable=False)
+    fecha_inicio = Column(Date, nullable=False)
+    fecha_fin = Column(Date, nullable=True)
+    hora_inicio = Column(Time, nullable=False)
+    hora_fin = Column(Time, nullable=False)
+    jugadores = Column(Integer, nullable=False)
+    frecuencia = Column(String(20), nullable=False)
+    intervalo = Column(Integer, nullable=False, default=1)
+    dias_semana = Column(String(50), nullable=True)
+    observaciones = Column(Text, nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    usuario = relationship("User")
+    cancha = relationship("Cancha")
+    reservas = relationship("Reserva", backref="serie")
