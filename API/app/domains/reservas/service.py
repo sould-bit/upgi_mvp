@@ -1,7 +1,7 @@
 from datetime import datetime, date, time, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, extract
-from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva
+from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva, ReglaPrecio
 from app.domains.canchas.models import Cancha
 from app.domains.inventario.models import AlquilerEquipo, Equipo
 from app.domains.users.models import User
@@ -402,4 +402,94 @@ class ReservaService:
             "contenido": c.contenido,
             "tipo": c.tipo,
             "created_at": c.created_at.isoformat() if c.created_at else None,
+        }
+
+    def listar_reglas_precio(self) -> dict:
+        reglas = (
+            self.db.query(ReglaPrecio)
+            .filter(ReglaPrecio.is_active == True)
+            .order_by(ReglaPrecio.id)
+            .all()
+        )
+        return {
+            "status": 200,
+            "reglas": [self._format_regla(r) for r in reglas],
+        }
+
+    def crear_regla_precio(self, data) -> dict:
+        regla = ReglaPrecio(
+            nombre=data.nombre,
+            tipo=data.tipo,
+            valor=data.valor,
+            es_socio=data.es_socio,
+        )
+        if data.hora_inicio:
+            regla.hora_inicio = datetime.strptime(data.hora_inicio, "%H:%M").time()
+        if data.hora_fin:
+            regla.hora_fin = datetime.strptime(data.hora_fin, "%H:%M").time()
+
+        self.db.add(regla)
+        self.db.commit()
+        self.db.refresh(regla)
+
+        return {
+            "status": 201,
+            "message": "Regla de precio creada",
+            "regla": self._format_regla(regla),
+        }
+
+    def preview_precio(self, data) -> dict:
+        cancha = self.db.query(Cancha).filter(Cancha.id == data.cancha_id).first()
+        if not cancha:
+            raise NotFoundException("Cancha no encontrada")
+
+        hora_inicio = datetime.strptime(data.hora_inicio, "%H:%M").time()
+        hora_fin = datetime.strptime(data.hora_fin, "%H:%M").time()
+
+        inicio_dt = datetime.combine(date.today(), hora_inicio)
+        fin_dt = datetime.combine(date.today(), hora_fin)
+        duracion_horas = (fin_dt - inicio_dt).seconds / 3600
+        precio_base = float(cancha.precio_hora) * duracion_horas
+
+        reglas = self.db.query(ReglaPrecio).filter(ReglaPrecio.is_active == True).all()
+        descuento_total = 0.0
+        desglose = []
+
+        for regla in reglas:
+            aplicable = False
+            if regla.tipo == "horario_pico" and regla.hora_inicio and regla.hora_fin:
+                if hora_inicio >= regla.hora_inicio and hora_fin <= regla.hora_fin:
+                    aplicable = True
+            elif regla.tipo == "descuento_socio" and data.es_socio and regla.es_socio:
+                aplicable = True
+
+            if aplicable:
+                desc = precio_base * float(regla.valor) / 100
+                descuento_total += desc
+                desglose.append({
+                    "regla": regla.nombre,
+                    "tipo": regla.tipo,
+                    "descuento": round(desc, 2),
+                })
+
+        precio_final = max(0, precio_base - descuento_total)
+
+        return {
+            "status": 200,
+            "precio_base": round(precio_base, 2),
+            "descuento": round(descuento_total, 2),
+            "precio_final": round(precio_final, 2),
+            "desglose": desglose,
+        }
+
+    def _format_regla(self, regla: ReglaPrecio) -> dict:
+        return {
+            "id": regla.id,
+            "nombre": regla.nombre,
+            "tipo": regla.tipo,
+            "valor": float(regla.valor),
+            "hora_inicio": regla.hora_inicio.strftime("%H:%M") if regla.hora_inicio else None,
+            "hora_fin": regla.hora_fin.strftime("%H:%M") if regla.hora_fin else None,
+            "es_socio": regla.es_socio,
+            "is_active": regla.is_active,
         }

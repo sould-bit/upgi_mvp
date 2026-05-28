@@ -23,7 +23,11 @@ import type {
   InventarioAlquiladoResponse,
   LoginCredentials,
   OcupacionResponse,
+  PrecioPreviewResponse,
   RegisterPayload,
+  ReglaPrecioCreatePayload,
+  ReglaPrecioCreateResponse,
+  ReglaPrecioListResponse,
   ReservaAlquileresResponse,
   ReservaAlquileresUpdatePayload,
   ReservationCreatePayload,
@@ -258,6 +262,29 @@ export function crearComunicacion(
   return apiRequest<ComunicacionCreateResponse>(`/reservas/${reservaId}/comunicaciones`, {
     method: 'POST',
     body: JSON.stringify({ contenido })
+  });
+}
+
+export function fetchReglasPrecio(): Promise<ReglaPrecioListResponse> {
+  return apiRequest<ReglaPrecioListResponse>('/reservas/admin/reglas-precio');
+}
+
+export function createReglaPrecio(payload: ReglaPrecioCreatePayload): Promise<ReglaPrecioCreateResponse> {
+  return apiRequest<ReglaPrecioCreateResponse>('/reservas/admin/reglas-precio', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export function previewPrecio(params: {
+  cancha_id: number;
+  hora_inicio: string;
+  hora_fin: string;
+  es_socio?: boolean;
+}): Promise<PrecioPreviewResponse> {
+  return apiRequest<PrecioPreviewResponse>('/reservas/admin/preview-precio', {
+    method: 'POST',
+    body: JSON.stringify(params)
   });
 }
 

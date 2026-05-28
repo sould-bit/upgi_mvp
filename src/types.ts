@@ -458,3 +458,42 @@ export interface ComunicacionCreateResponse {
   message: string;
   comunicacion: Comunicacion;
 }
+
+export interface ReglaPrecio {
+  id: number;
+  nombre: string;
+  tipo: 'horario_pico' | 'descuento_socio' | 'promo';
+  valor: number;
+  hora_inicio?: string | null;
+  hora_fin?: string | null;
+  es_socio: boolean;
+  is_active: boolean;
+}
+
+export interface ReglaPrecioCreatePayload {
+  nombre: string;
+  tipo: string;
+  valor: number;
+  hora_inicio?: string | null;
+  hora_fin?: string | null;
+  es_socio: boolean;
+}
+
+export interface ReglaPrecioListResponse {
+  status: number;
+  reglas: ReglaPrecio[];
+}
+
+export interface ReglaPrecioCreateResponse {
+  status: number;
+  message: string;
+  regla: ReglaPrecio;
+}
+
+export interface PrecioPreviewResponse {
+  status: number;
+  precio_base: number;
+  descuento: number;
+  precio_final: number;
+  desglose: { regla: string; tipo: string; descuento: number }[];
+}

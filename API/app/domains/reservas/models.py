@@ -1,5 +1,5 @@
 from datetime import datetime, date, time
-from sqlalchemy import Column, Integer, String, DateTime, Date, Time, ForeignKey, DECIMAL, Text, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, DateTime, Date, Time, ForeignKey, DECIMAL, Text, Enum as SQLEnum, Boolean
 from sqlalchemy.orm import relationship
 from app.db.base import Base
 import enum
@@ -24,6 +24,8 @@ class Reserva(Base):
     jugadores = Column(Integer, nullable=False)
     estado_pago = Column(SQLEnum(EstadoPago), default=EstadoPago.SIN_PAGAR)
     precio_total = Column(DECIMAL(10, 2), nullable=False)
+    precio_base = Column(DECIMAL(10, 2), nullable=True)
+    descuento_monto = Column(DECIMAL(10, 2), nullable=True, default=0)
     observaciones = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -46,3 +48,17 @@ class ComunicacionReserva(Base):
 
     reserva = relationship("Reserva", back_populates="comunicaciones")
     autor = relationship("User")
+
+
+class ReglaPrecio(Base):
+    __tablename__ = "reglas_precio"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(100), nullable=False)
+    tipo = Column(String(30), nullable=False)
+    valor = Column(DECIMAL(10, 2), nullable=False)
+    hora_inicio = Column(Time, nullable=True)
+    hora_fin = Column(Time, nullable=True)
+    es_socio = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

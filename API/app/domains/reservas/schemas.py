@@ -132,3 +132,52 @@ class ComunicacionCreateResponse(BaseModel):
     status: int = 201
     message: str
     comunicacion: ComunicacionResponse
+
+
+class ReglaPrecioCreate(BaseModel):
+    nombre: str
+    tipo: str
+    valor: float
+    hora_inicio: str | None = None
+    hora_fin: str | None = None
+    es_socio: bool = False
+
+
+class ReglaPrecioResponse(BaseModel):
+    id: int
+    nombre: str
+    tipo: str
+    valor: float
+    hora_inicio: str | None = None
+    hora_fin: str | None = None
+    es_socio: bool
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class ReglaPrecioListResponse(BaseModel):
+    status: int = 200
+    reglas: list[ReglaPrecioResponse]
+
+
+class ReglaPrecioCreateResponse(BaseModel):
+    status: int = 201
+    message: str
+    regla: ReglaPrecioResponse
+
+
+class PrecioPreviewRequest(BaseModel):
+    cancha_id: int
+    hora_inicio: str
+    hora_fin: str
+    es_socio: bool = False
+
+
+class PrecioPreviewResponse(BaseModel):
+    status: int = 200
+    precio_base: float
+    descuento: float
+    precio_final: float
+    desglose: list[dict]

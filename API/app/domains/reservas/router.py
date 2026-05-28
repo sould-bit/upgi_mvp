@@ -12,6 +12,8 @@ from app.domains.reservas.schemas import (
     ReservaCreateResponse, ReservaResponse, ReservaListResponse,
     ReservaDetailGetResponse, PagoUpdate, PagoResponse, ReservaCancelResponse,
     ComunicacionCreate, ComunicacionCreateResponse, ComunicacionListResponse,
+    ReglaPrecioCreate, ReglaPrecioCreateResponse, ReglaPrecioListResponse,
+    PrecioPreviewRequest, PrecioPreviewResponse,
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
@@ -140,3 +142,42 @@ def crear_comunicacion(
         contenido=data.contenido,
         is_admin=current_user.is_admin
     )
+
+
+@router.get("/admin/reglas-precio", response_model=ReglaPrecioListResponse)
+def listar_reglas_precio(current_user: User = Depends(get_current_admin)):
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.listar_reglas_precio()
+    finally:
+        db.close()
+
+
+@router.post("/admin/reglas-precio", response_model=ReglaPrecioCreateResponse, status_code=201)
+def crear_regla_precio(
+    data: ReglaPrecioCreate,
+    current_user: User = Depends(get_current_admin),
+):
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.crear_regla_precio(data)
+    finally:
+        db.close()
+
+
+@router.post("/admin/preview-precio", response_model=PrecioPreviewResponse)
+def preview_precio(
+    data: PrecioPreviewRequest,
+    current_user: User = Depends(get_current_admin),
+):
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        service = ReservaService(db)
+        return service.preview_precio(data)
+    finally:
+        db.close()
