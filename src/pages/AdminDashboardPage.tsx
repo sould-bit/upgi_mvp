@@ -195,7 +195,7 @@ function buildScheduleRows(reservations: AdminReservation[], courts: Court[], se
 
   if (dayReservations.length === 0) {
     // igual renderizar las filas de horas con todas las canchas libres.
-    const orderedCourtNames = courts.filter((court) => court.is_active).map((court) => court.nombre);
+    const orderedCourtNames = Array.from(new Set(courts.filter((court) => court.is_active).map((court) => court.nombre)));
     if (orderedCourtNames.length === 0) {
       return [];
     }

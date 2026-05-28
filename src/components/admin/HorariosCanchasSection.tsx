@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { AdminReservation, EditablePaymentStatus, Equipo, ReservaAlquileresUpdatePayload, ScheduleRow } from '../../types';
 import HorariosTable from './HorariosTable';
 import PaymentStatusBadge from './PaymentStatusBadge';
 import ReservationModal from './ReservationModal';
 import StatusLegend from './StatusLegend';
+
+const COURTS_PER_PAGE = 6;
 
 interface HorariosCanchasSectionProps {
   searchTerm: string;
@@ -41,8 +43,32 @@ function HorariosCanchasSection({
   // Modal de detalle de reserva.
   const [modalReservationId, setModalReservationId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [courtPage, setCourtPage] = useState(0);
 
-  const filteredRows = rows.filter((row) => {
+  // Obtener nombres únicos de canchas de las filas.
+  const allCourtNames = useMemo(() => {
+    if (rows.length === 0) return [];
+    const names = rows[0].slots.map((s) => s.court);
+    return Array.from(new Set(names));
+  }, [rows]);
+
+  const totalPages = Math.max(1, Math.ceil(allCourtNames.length / COURTS_PER_PAGE));
+  const clampedPage = Math.min(courtPage, totalPages - 1);
+
+  const paginatedCourtNames = useMemo(() => {
+    const start = clampedPage * COURTS_PER_PAGE;
+    return allCourtNames.slice(start, start + COURTS_PER_PAGE);
+  }, [allCourtNames, clampedPage]);
+
+  // Filtrar filas para mostrar solo las columnas de la página actual.
+  const paginatedRows = useMemo(() => {
+    return rows.map((row) => ({
+      ...row,
+      slots: row.slots.filter((slot) => paginatedCourtNames.includes(slot.court))
+    }));
+  }, [rows, paginatedCourtNames]);
+
+  const filteredRows = paginatedRows.filter((row) => {
     if (!searchTerm) {
       return true;
     }
@@ -133,7 +159,7 @@ function HorariosCanchasSection({
           <p>Hacé click en una tarjeta para ver detalles o en + para reservar rápido.</p>
         </div>
 
-        {/* Controles: date picker */}
+        {/* Controles: date picker + paginación de canchas */}
         <div className="horarios-controls">
           <div className="horarios-date-picker">
             <label className="form-label mb-1" htmlFor="horarios-date">
@@ -147,6 +173,30 @@ function HorariosCanchasSection({
               value={selectedDate}
             />
           </div>
+
+          {totalPages > 1 && (
+            <div className="court-pagination d-flex align-items-center gap-2 ms-auto">
+              <span className="text-muted small">
+                Canchas {clampedPage * COURTS_PER_PAGE + 1}–{Math.min((clampedPage + 1) * COURTS_PER_PAGE, allCourtNames.length)} de {allCourtNames.length}
+              </span>
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={clampedPage === 0}
+                onClick={() => setCourtPage((p) => Math.max(0, p - 1))}
+                type="button"
+              >
+                ‹ Anterior
+              </button>
+              <button
+                className="btn btn-sm btn-outline-secondary"
+                disabled={clampedPage >= totalPages - 1}
+                onClick={() => setCourtPage((p) => Math.min(totalPages - 1, p + 1))}
+                type="button"
+              >
+                Siguiente ›
+              </button>
+            </div>
+          )}
         </div>
 
           {filteredRows.length > 0 ? (
