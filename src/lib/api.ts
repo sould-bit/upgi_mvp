@@ -4,6 +4,8 @@ import type {
   AuthResponse,
   AvailabilityResponse,
   ClientesFrecuentesResponse,
+  ComunicacionCreateResponse,
+  ComunicacionListResponse,
   CourtCreatePayload,
   CourtCreateResponse,
   CourtDeleteResponse,
@@ -242,6 +244,20 @@ export function completarMantenimiento(
 ): Promise<{ status: number; message: string; equipo: Equipo }> {
   return apiRequest(`/admin/equipos/${equipoId}/mantenimiento/completar`, {
     method: 'PATCH'
+  });
+}
+
+export function fetchComunicaciones(reservaId: number): Promise<ComunicacionListResponse> {
+  return apiRequest<ComunicacionListResponse>(`/reservas/${reservaId}/comunicaciones`);
+}
+
+export function crearComunicacion(
+  reservaId: number,
+  contenido: string
+): Promise<ComunicacionCreateResponse> {
+  return apiRequest<ComunicacionCreateResponse>(`/reservas/${reservaId}/comunicaciones`, {
+    method: 'POST',
+    body: JSON.stringify({ contenido })
   });
 }
 

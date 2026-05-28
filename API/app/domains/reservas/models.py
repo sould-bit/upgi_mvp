@@ -30,3 +30,19 @@ class Reserva(Base):
 
     usuario = relationship("User", backref="reservas")
     cancha = relationship("Cancha", backref="reservas")
+    comunicaciones = relationship("ComunicacionReserva", back_populates="reserva", order_by="ComunicacionReserva.created_at.desc()")
+
+
+class ComunicacionReserva(Base):
+    __tablename__ = "comunicaciones_reserva"
+
+    id = Column(Integer, primary_key=True, index=True)
+    reserva_id = Column(Integer, ForeignKey("reservas.id"), nullable=False)
+    autor_usuario_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    autor_nombre = Column(String(200), nullable=False)
+    contenido = Column(Text, nullable=False)
+    tipo = Column(String(20), nullable=False, default="NOTE")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    reserva = relationship("Reserva", back_populates="comunicaciones")
+    autor = relationship("User")

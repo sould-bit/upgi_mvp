@@ -1,7 +1,7 @@
 from datetime import datetime, date, time, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_, extract
-from app.domains.reservas.models import Reserva, EstadoPago
+from app.domains.reservas.models import Reserva, EstadoPago, ComunicacionReserva
 from app.domains.canchas.models import Cancha
 from app.domains.inventario.models import AlquilerEquipo, Equipo
 from app.domains.users.models import User
@@ -343,3 +343,63 @@ class ReservaService:
             return f"{observaciones}\n{note}"
 
         return note
+
+    def listar_comunicaciones(self, reserva_id: int, is_admin: bool = False) -> dict:
+        reserva = self.db.query(Reserva).filter(Reserva.id == reserva_id).first()
+        if not reserva:
+            raise NotFoundException("Reserva no encontrada")
+
+        comunicaciones = (
+            self.db.query(ComunicacionReserva)
+            .filter(ComunicacionReserva.reserva_id == reserva_id)
+            .order_by(ComunicacionReserva.created_at.asc())
+            .all()
+        )
+
+        return {
+            "status": 200,
+            "comunicaciones": [self._format_comunicacion(c) for c in comunicaciones],
+        }
+
+    def crear_comunicacion(
+        self,
+        reserva_id: int,
+        autor_usuario_id: int,
+        autor_nombre: str,
+        contenido: str,
+        is_admin: bool = False,
+    ) -> dict:
+        reserva = self.db.query(Reserva).filter(Reserva.id == reserva_id).first()
+        if not reserva:
+            raise NotFoundException("Reserva no encontrada")
+
+        if reserva.estado_pago == EstadoPago.LIBRE and not is_admin:
+            raise ValidationException("No se pueden agregar notas a una reserva cancelada")
+
+        comunicacion = ComunicacionReserva(
+            reserva_id=reserva_id,
+            autor_usuario_id=autor_usuario_id,
+            autor_nombre=autor_nombre,
+            contenido=contenido,
+            tipo="NOTE",
+        )
+        self.db.add(comunicacion)
+        self.db.commit()
+        self.db.refresh(comunicacion)
+
+        return {
+            "status": 201,
+            "message": "Nota agregada",
+            "comunicacion": self._format_comunicacion(comunicacion),
+        }
+
+    def _format_comunicacion(self, c: ComunicacionReserva) -> dict:
+        return {
+            "id": c.id,
+            "reserva_id": c.reserva_id,
+            "autor_usuario_id": c.autor_usuario_id,
+            "autor_nombre": c.autor_nombre,
+            "contenido": c.contenido,
+            "tipo": c.tipo,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+        }

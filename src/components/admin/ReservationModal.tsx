@@ -1,5 +1,6 @@
-import { useEffect, useRef } from 'react';
-import type { AdminReservation, EditablePaymentStatus, Equipo, ReservaAlquileresUpdatePayload } from '../../types';
+import { useEffect, useRef, useState } from 'react';
+import type { AdminReservation, Comunicacion, EditablePaymentStatus, Equipo, ReservaAlquileresUpdatePayload } from '../../types';
+import { crearComunicacion, fetchComunicaciones } from '../../lib/api';
 import PaymentStatusBadge from './PaymentStatusBadge';
 import ReservaAlquileresPanel from './ReservaAlquileresPanel';
 
@@ -31,6 +32,10 @@ function ReservationModal({
   onSaveRentals
 }: ReservationModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
+  const [comunicaciones, setComunicaciones] = useState<Comunicacion[]>([]);
+  const [newNote, setNewNote] = useState('');
+  const [isSubmittingNote, setIsSubmittingNote] = useState(false);
+  const [commsLoading, setCommsLoading] = useState(false);
 
   // Cerrar con Escape.
   useEffect(() => {
@@ -51,6 +56,29 @@ function ReservationModal({
     };
   }, [isOpen, onClose]);
 
+  // Cargar comunicaciones cuando se abre el modal.
+  useEffect(() => {
+    if (!isOpen || !reservation) {
+      setComunicaciones([]);
+      setNewNote('');
+      return;
+    }
+
+    const loadComunicaciones = async () => {
+      setCommsLoading(true);
+      try {
+        const response = await fetchComunicaciones(reservation.id);
+        setComunicaciones(response.comunicaciones);
+      } catch {
+        // Silently fail — communications are non-critical.
+      } finally {
+        setCommsLoading(false);
+      }
+    };
+
+    void loadComunicaciones();
+  }, [isOpen, reservation]);
+
   if (!isOpen || !reservation) {
     return null;
   }
@@ -66,6 +94,20 @@ function ReservationModal({
     );
     if (confirmed) {
       void onCancel(reservation.id);
+    }
+  };
+
+  const handleAddNote = async () => {
+    if (!newNote.trim() || !reservation) return;
+    setIsSubmittingNote(true);
+    try {
+      const response = await crearComunicacion(reservation.id, newNote.trim());
+      setComunicaciones((prev) => [...prev, response.comunicacion]);
+      setNewNote('');
+    } catch {
+      // Could add error feedback, but keeping it minimal.
+    } finally {
+      setIsSubmittingNote(false);
     }
   };
 
@@ -230,6 +272,55 @@ function ReservationModal({
                 </span>
               </div>
             ) : null}
+          </section>
+
+          {/* Sección Comunicaciones / Notas */}
+          <section className="reservation-modal-section">
+            <h3 className="reservation-modal-section-title">
+              <svg fill="none" height="16" stroke="currentColor" viewBox="0 0 24 24" width="16">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+              </svg>
+              Notas y Comunicaciones
+            </h3>
+
+            {commsLoading ? (
+              <div className="text-muted small">Cargando notas...</div>
+            ) : comunicaciones.length === 0 ? (
+              <div className="text-muted small mb-2">Sin notas registradas.</div>
+            ) : (
+              <div className="comms-timeline mb-3">
+                {comunicaciones.map((c) => (
+                  <div key={c.id} className="comm-entry">
+                    <div className="comm-entry-header">
+                      <strong className="comm-entry-author">{c.autor_nombre}</strong>
+                      <span className="comm-entry-time">
+                        {c.created_at ? new Date(c.created_at).toLocaleString('es-CO') : ''}
+                      </span>
+                    </div>
+                    <div className="comm-entry-body">{c.contenido}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="d-flex gap-2">
+              <input
+                className="form-control form-control-sm"
+                placeholder="Agregar una nota sobre esta reserva..."
+                value={newNote}
+                onChange={(e) => setNewNote(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void handleAddNote(); } }}
+                disabled={isSubmittingNote}
+              />
+              <button
+                className="btn btn-sm btn-primary"
+                onClick={() => void handleAddNote()}
+                disabled={isSubmittingNote || !newNote.trim()}
+                type="button"
+              >
+                {isSubmittingNote ? '...' : 'Agregar'}
+              </button>
+            </div>
           </section>
         </div>
 

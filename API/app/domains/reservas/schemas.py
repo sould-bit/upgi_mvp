@@ -97,3 +97,38 @@ class ReservaPublicCreateResponse(BaseModel):
     message: str
     reserva: dict
     email_enviado: bool = False
+
+
+class ComunicacionCreate(BaseModel):
+    contenido: str
+
+    @field_validator("contenido")
+    @classmethod
+    def validate_contenido(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("El contenido no puede estar vacío")
+        return v.strip()
+
+
+class ComunicacionResponse(BaseModel):
+    id: int
+    reserva_id: int
+    autor_usuario_id: int
+    autor_nombre: str
+    contenido: str
+    tipo: str
+    created_at: str | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class ComunicacionListResponse(BaseModel):
+    status: int = 200
+    comunicaciones: list[ComunicacionResponse]
+
+
+class ComunicacionCreateResponse(BaseModel):
+    status: int = 201
+    message: str
+    comunicacion: ComunicacionResponse

@@ -1793,3 +1793,43 @@ p {
     grid-template-columns: 1fr;
   }
 }
+
+/* Communication Timeline */
+.comms-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.comm-entry {
+  background: var(--color-panel, #f8f9fa);
+  border-left: 3px solid var(--color-primary, #0d6efd);
+  border-radius: 0 6px 6px 0;
+  padding: 0.5rem 0.75rem;
+}
+
+.comm-entry-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.comm-entry-author {
+  font-size: 0.8rem;
+  color: var(--color-text, #212529);
+}
+
+.comm-entry-time {
+  font-size: 0.7rem;
+  color: var(--color-muted, #6c757d);
+}
+
+.comm-entry-body {
+  font-size: 0.85rem;
+  color: var(--color-text, #212529);
+  white-space: pre-wrap;
+}

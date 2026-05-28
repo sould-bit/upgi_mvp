@@ -10,7 +10,8 @@ from app.domains.reservas.models import EstadoPago
 from app.domains.reservas.schemas import (
     ReservaCreate, ReservaCreatePublic, ReservaPublicCreateResponse,
     ReservaCreateResponse, ReservaResponse, ReservaListResponse,
-    ReservaDetailGetResponse, PagoUpdate, PagoResponse, ReservaCancelResponse
+    ReservaDetailGetResponse, PagoUpdate, PagoResponse, ReservaCancelResponse,
+    ComunicacionCreate, ComunicacionCreateResponse, ComunicacionListResponse,
 )
 
 router = APIRouter(prefix="/reservas", tags=["Reservas"])
@@ -112,3 +113,30 @@ def actualizar_pago(
 ):
     service = ReservaService(db)
     return service.actualizar_pago(reserva_id, data.estado_pago)
+
+
+@router.get("/{reserva_id}/comunicaciones", response_model=ComunicacionListResponse)
+def listar_comunicaciones(
+    reserva_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    service = ReservaService(db)
+    return service.listar_comunicaciones(reserva_id, current_user.is_admin)
+
+
+@router.post("/{reserva_id}/comunicaciones", response_model=ComunicacionCreateResponse, status_code=201)
+def crear_comunicacion(
+    reserva_id: int,
+    data: ComunicacionCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    service = ReservaService(db)
+    return service.crear_comunicacion(
+        reserva_id=reserva_id,
+        autor_usuario_id=current_user.id,
+        autor_nombre=current_user.nombre,
+        contenido=data.contenido,
+        is_admin=current_user.is_admin
+    )

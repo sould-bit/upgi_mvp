@@ -437,3 +437,24 @@ export interface BusinessSettings {
   duracionMinima: number;
   moneda: string;
 }
+
+export interface Comunicacion {
+  id: number;
+  reserva_id: number;
+  autor_usuario_id: number;
+  autor_nombre: string;
+  contenido: string;
+  tipo: 'SYSTEM' | 'NOTE';
+  created_at?: string | null;
+}
+
+export interface ComunicacionListResponse {
+  status: number;
+  comunicaciones: Comunicacion[];
+}
+
+export interface ComunicacionCreateResponse {
+  status: number;
+  message: string;
+  comunicacion: Comunicacion;
+}
